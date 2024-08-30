@@ -12,7 +12,7 @@ classdef JumpCursors <  wl_experiment
                     wl_printf('error','Initialisation aborted!\n')
                     return;
                 end
-
+                %%%kk
                 WL.Robot = WL.robot(WL.cfg.RobotName); % Mouse Flag and Max Force processed automatically.
                 WL.Hardware = wl_hardware(WL.Robot);
                 ok = WL.Hardware.Start();
