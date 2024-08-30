@@ -35,6 +35,7 @@ WL.cfg.ErrorWait = 1.5;
 
 WL.cfg.TargetDistance = 20;
 WL.cfg.HomePosition = [ 0 -7 0 ]';
+WL.cfg.TargetPosition = WL.cfg.HomePosition + [ 0 WL.cfg.TargetDistance 0 ]';
 
 %WL.cfg.rnum = 7;
 %rng(WL.cfg.rnum);
@@ -57,6 +58,28 @@ WL.cfg.plot_timing = 0;
 
 % The over-ride goes here to copy 'GW' variables set by the GUI/defaults to 'cfg'.
 WL.overide_cfg_defaults();
+
+if ~isfield(WL.cfg, 'graphics_config')
+    % wl_cfg_rig: if ComputerName has no match, hardcoded there
+    % wl_start_screen: else read here via MexReadConfig('GRAPHICS')
+    % but the latter does not work yet (2024-08) so hardcoding here
+
+    % running in lab: ComputerName has a match but MexReadConfig
+    % does not work yet, so hardcoding here
+
+    % running on robot (set according to screen specs)
+    if ~WL.cfg.MouseFlag
+        % https://www.displayspecifications.com/en/model/446a828
+        dispWidth  = 59.7888;
+        dispHeight = 33.6312;
+        WL.cfg.graphics_config.Xmin_Xmax = [ -1  1 ] * dispWidth /2;
+        WL.cfg.graphics_config.Ymin_Ymax = [  1 -1 ] * dispHeight/2;
+    else
+        % running sim in lab (set same as in wl_cfg_rig)
+        WL.cfg.graphics_config.Xmin_Xmax = [ -1  1 ] * 30;
+        WL.cfg.graphics_config.Ymin_Ymax = [ -1  1 ] * 15;
+    end
+end
 
 %%
 % Null field.

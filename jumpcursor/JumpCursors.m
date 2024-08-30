@@ -96,6 +96,9 @@ classdef JumpCursors <  wl_experiment
     
     Screen('BeginOpenGL', win);
 
+    txt = sprintf('State = %s, x=%.1f, y=%.1f, CursorVisible=%d, ', WL.State.Name{WL.State.Current}, WL.Robot.Position(1), WL.Robot.Position(2), int8(WL.cfg.CursorVisible));
+    WL.draw_text(txt, [0 0 0]);
+
     % Always draw the home position
     wl_draw_sphere(WL.cfg.HomePosition + [0 0 -2]', WL.cfg.HomeRadius, [0 1 1], 'Alpha', 0.7);
 
@@ -108,10 +111,10 @@ classdef JumpCursors <  wl_experiment
              %WL.cfg.hasJumped = false;
             WL.cfg.CursorVisible = true; % Cursor initially not visible
             %WL.Timer.CursorVisibilityTimer.Reset();
-              if WL.cfg.JumpTimer == 1
-                   WL.Timer.CursorVisibilityTimer.Reset()
-                   WL.cfg.JumpTimer = 0;
-              end            
+              % if WL.cfg.JumpTimer == 1
+              %      WL.Timer.CursorVisibilityTimer.Reset()
+              %      WL.cfg.JumpTimer = 0;
+              % end            
      end
   
     if WL.cfg.hasJumped
@@ -128,13 +131,21 @@ classdef JumpCursors <  wl_experiment
 
 
     % Draw the cursor during the HOME, MOVEWAIT, MOVING, and CURSORJUMP states
-    if any(WL.State.Current == [WL.State.HOME ,  WL.State.GO , WL.State.POSTJUMP ]) %, WL.State.MOVEWAIT, WL.State.MOVING, WL.State.CURSORJUMP])
-       wl_draw_sphere(WL.cfg.CursorPosition, WL.cfg.CursorRadius, [1 0 0]);
+    if any(WL.State.Current == [WL.State.HOME ,  WL.State.GO  ]) %, WL.State.MOVEWAIT, WL.State.MOVING, WL.State.CURSORJUMP])
+       % wl_draw_sphere(WL.cfg.CursorPosition, WL.cfg.CursorRadius, [1 0 0]);
     end
 
     % Draw the cursor only if it is visible
+    % if WL.cfg.CursorVisible
+    %     wl_draw_sphere(WL.cfg.CursorPosition, WL.cfg.CursorRadius, [1 0 0]);
+    % end
+
     if WL.cfg.CursorVisible
+        % red visible
         wl_draw_sphere(WL.cfg.CursorPosition, WL.cfg.CursorRadius, [1 0 0]);
+    else
+        % gray invisible
+        wl_draw_sphere(WL.cfg.CursorPosition, WL.cfg.CursorRadius, 0.3*[1 1 1]);
     end
 
 
@@ -169,21 +180,30 @@ classdef JumpCursors <  wl_experiment
  
 
                 case WL.State.SETUP % Setup details of next trial, but only when robot stationary and active.
-                    if WL.robot_stationary() && all(WL.Robot.Active)
+                    if all(WL.Robot.Active)
                         WL.cfg.shown = false;
                         WL.cfg.CursorVisible = false;
-                        WL.cfg.shown = false;
                         WL.trial_setup();
                         WL.state_next(WL.State.HOME);
                     end
+
+                % SETUP -> RETURN -> HOME ...
+                % go from SETUP to RETURN (instead of to HOME)
+                % RETURN: if Robot at home, start timer, go to HOME
+                % HOME: if Robot not at home, go to RETURN
+                %       if timer > time, go to START
                     
                 case WL.State.HOME % Start trial when robot in home position (and stationary and active).
+                    if WL.Robot.Position(2) < 0
+                        WL.cfg.CursorVisible = true;
+                    end
                     if (WL.robot_stationary() &&  WL.robot_home() && all(WL.Robot.Active)) || WL.Trial.ReturnFlag
                        % WL.cfg.hasJumped = false;
                         WL.state_next(WL.State.START);
                     end
                     
                 case WL.State.START % Start trial.
+                    WL.cfg.CursorVisible = false;
                     WL.trial_start();
                    % WL.cfg.hasJumped = false;
                     
@@ -248,7 +268,7 @@ classdef JumpCursors <  wl_experiment
                 %jump_distance = WL.Trial.JumpDistance;
                 WL.cfg.CursorVisible = true;
                 WL.cfg.hasJumped = true;
-             WL.Timer.CursorVisibilityTimer.Reset 
+                WL.Timer.CursorVisibilityTimer.Reset;
     %          elapsedTime = WL.Timer.CursorVisibilityTimer.GetTime()
     % if elapsedTime > WL.cfg.CursorVisibilityDuration
     %     if WL.cfg.CursorVisible  % Check to ensure the cursor is currently visible
@@ -263,10 +283,12 @@ classdef JumpCursors <  wl_experiment
 
         case WL.State.POSTJUMP
              % Check if 100ms have passed since the jump
-    elapsedTime = WL.Timer.CursorVisibilityTimer.GetTime();
+            
+             if WL.Timer.CursorVisibilityTimer.GetTime() > 0.1
+                 WL.cfg.CursorVisible = false;
+             end
 
             if WL.movement_finished()
-                WL.cfg.CursorVisible = true;
                 WL.Trial.MovementDurationTime = WL.Timer.MovementDurationTimer.GetTime;
                 if ~WL.Trial.ReturnFlag
                     WL.cfg.explosion1.ExplodePop(WL.Trial.TargetPosition);
@@ -281,7 +303,6 @@ classdef JumpCursors <  wl_experiment
                 
         case WL.State.FINISH
             WL.cfg.hasJumped = false;
-            WL.cfg.CursorVisible = false;
              ok = WL.Robot.RampDown();
             if WL.State.FirstFlag
                 fprintf(1,'TrialStop\n');
@@ -302,7 +323,7 @@ classdef JumpCursors <  wl_experiment
                     WL.var.data=WL.var.data{1};
                     WL.var.data.TrialData = WL.TrialData(WL.TrialNumber,:);
                     if  rem(WL.TrialNumber,2)==1
-                        WL.plot_results
+                        %WL.plot_results
                     end
                     
                     WL.state_next(WL.State.SETUP);
@@ -404,14 +425,9 @@ classdef JumpCursors <  wl_experiment
             out = err<WL.cfg.HomeRadius;
         end
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-      function flag = movement_finished(WL)
-    if WL.Trial.ReturnFlag == 1
-        distance = norm(WL.cfg.CursorPosition - WL.Trial.ReturnTargetPosition);
-    else
-        distance = norm(WL.cfg.CursorPosition - WL.Trial.TargetPosition);
-    end
-    flag = (distance < WL.cfg.HomeRadius) && WL.robot_stationary();
-      end
+          function flag = movement_finished(WL)
+            flag = WL.Robot.Position(2) >= WL.cfg.TargetPosition(2);
+          end
 
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function out = movement_started(WL)
@@ -424,18 +440,18 @@ classdef JumpCursors <  wl_experiment
    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
        
         function flag = reaches_jump_point(WL)
-    % Define the fixed distance for the jump
-    fixed_distance = 10;  % 4 units
-
-    % Calculate the y-axis distance from the cursor's position to the home position
-    current_distance_y = WL.cfg.CursorPosition(2) - WL.cfg.HomePosition(2);
-
-    % Check if the cursor has reached or surpassed the fixed distance along the y-axis
-    flag = current_distance_y >= fixed_distance;
-
-    disp(flag);
-    disp(fixed_distance);
-    disp(current_distance_y >= fixed_distance);
+            % Define the fixed distance for the jump
+            fixed_distance = 10;  % 4 units
+        
+            % Calculate the y-axis distance from the cursor's position to the home position
+            current_distance_y = WL.cfg.CursorPosition(2) - WL.cfg.HomePosition(2);
+        
+            % Check if the cursor has reached or surpassed the fixed distance along the y-axis
+            flag = current_distance_y >= fixed_distance;
+        
+            disp(flag);
+            disp(fixed_distance);
+            disp(current_distance_y >= fixed_distance);
         end
     
         
