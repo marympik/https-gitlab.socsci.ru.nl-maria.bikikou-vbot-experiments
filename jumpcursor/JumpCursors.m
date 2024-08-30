@@ -108,13 +108,7 @@ classdef JumpCursors <  wl_experiment
     end
      if WL.cfg.hasJumped % WL.State.MOVEWAIT, WL.State.MOVING, WL.State.CURSORJUMP])
              WL.cfg.CursorPosition(1) = WL.Robot.Position(1) + 5;
-             %WL.cfg.hasJumped = false;
-            WL.cfg.CursorVisible = true; % Cursor initially not visible
-            %WL.Timer.CursorVisibilityTimer.Reset();
-              % if WL.cfg.JumpTimer == 1
-              %      WL.Timer.CursorVisibilityTimer.Reset()
-              %      WL.cfg.JumpTimer = 0;
-              % end            
+            WL.cfg.CursorVisible = true; % Cursor initially not visible            
      end
   
     if WL.cfg.hasJumped
@@ -134,11 +128,6 @@ classdef JumpCursors <  wl_experiment
     if any(WL.State.Current == [WL.State.HOME ,  WL.State.GO  ]) %, WL.State.MOVEWAIT, WL.State.MOVING, WL.State.CURSORJUMP])
        % wl_draw_sphere(WL.cfg.CursorPosition, WL.cfg.CursorRadius, [1 0 0]);
     end
-
-    % Draw the cursor only if it is visible
-    % if WL.cfg.CursorVisible
-    %     wl_draw_sphere(WL.cfg.CursorPosition, WL.cfg.CursorRadius, [1 0 0]);
-    % end
 
     if WL.cfg.CursorVisible
         % red visible
@@ -250,34 +239,12 @@ classdef JumpCursors <  wl_experiment
                 disp('Transitioning to CURSORJUMP');
                 WL.state_next(WL.State.CURSORJUMP);
             end
-
-            % if WL.movement_finished()
-            %     WL.Trial.MovementDurationTime = WL.Timer.MovementDurationTimer.GetTime;
-            %     if ~WL.Trial.ReturnFlag
-            %         WL.cfg.explosion1.ExplodePop(WL.Trial.TargetPosition);
-            %     end
-            %     disp('POSTJUMP TO FINISH');
-            %     WL.state_next(WL.State.FINISH);
-            % elseif WL.Timer.MovementDurationTimer.GetTime > WL.cfg.MovementDurationTimeOut && ~WL.Trial.ReturnFlag
-            %     disp('POSTJUMP TO tiemout');
-            %     WL.state_next(WL.State.TIMEOUT);
-            % end   
-            % 
         case WL.State.CURSORJUMP
             if ~WL.cfg.hasJumped
                 %jump_distance = WL.Trial.JumpDistance;
                 WL.cfg.CursorVisible = true;
                 WL.cfg.hasJumped = true;
                 WL.Timer.CursorVisibilityTimer.Reset;
-    %          elapsedTime = WL.Timer.CursorVisibilityTimer.GetTime()
-    % if elapsedTime > WL.cfg.CursorVisibilityDuration
-    %     if WL.cfg.CursorVisible  % Check to ensure the cursor is currently visible
-    %         WL.cfg.CursorVisible = false;  % Make the cursor invisible
-    %         disp(['Cursor visibility set to false after ', num2str(elapsedTime), ' seconds.']);
-    %     end
-    % else
-    %     disp(['Cursor is visible. Elapsed time: ', num2str(elapsedTime), ' seconds.']);
-    % end               % Transition to POSTJUMP state
                 WL.state_next(WL.State.POSTJUMP);
             end
 
