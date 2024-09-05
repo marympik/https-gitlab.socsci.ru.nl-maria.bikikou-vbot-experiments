@@ -38,23 +38,24 @@ classdef JumpCursors <  wl_experiment
             % Define possible jump distances in cm (converted to meters if needed)
           %possibleJumpDistances = [0.04, 0.05, 0.06, 0.07, 0.08];  % in meters
 
-    % Check if the JumpDistance field exists, if not, initialize it
+     % Check if the JumpDistance field exists, if not, initialize it
     if ~ismember('JumpDistance', WL.TrialData.Properties.VariableNames)
         % Add JumpDistance field and initialize with zeros
         WL.TrialData.JumpDistance = zeros(height(WL.TrialData), 1);
     end
 
-    % Assign a random jump distance to each trial
-    %possibleJumpDistances(randi(length(possibleJumpDistances)));
+    % Randomly assign a jump distance to each trial from the predefined list
+    possibleJumpDistances = WL.cfg.possibleJumpDistances;  % Use the possible jump distances from the config
     for i = 1:height(WL.TrialData)
-        % Randomly select a jump distance from the possible distances
-        WL.TrialData.JumpDistance(i) = 5;
+        WL.TrialData.JumpDistance(i) = possibleJumpDistances(randi(length(possibleJumpDistances)));  % Randomly select a distance
     end
 
-            for i=1:3
-                j = find((WL.TrialData.block_index == i) & ((WL.TrialData.FieldType == 0) | (WL.TrialData.FieldType == 1)));
-                WL.cfg.PhaseTrialCount(i) = length(j);
-            end
+    % Additional initialization logic...
+    for i = 1:3
+        j = find((WL.TrialData.block_index == i) & ((WL.TrialData.FieldType == 0) | (WL.TrialData.FieldType == 1)));
+        WL.cfg.PhaseTrialCount(i) = length(j);
+    end
+
             
             WL.cfg.explosion1 = wl_draw_explode(WL.cfg.TargetRadius, [1 1 1], 80/100 );
 
@@ -73,8 +74,8 @@ classdef JumpCursors <  wl_experiment
             WL.Timer.CursorVisibilityTimer = wl_timer;
             WL.cfg.CursorVisibilityDuration = 0.1;
             % Initialize the target position relative to the home position
-            % WL.cfg.targetPosition = WL.cfg.HomePosition;
-            % WL.cfg.targetPosition(2) = WL.cfg.targetPosition(2) + WL.cfg.TargetDistance;  % Moving 20 units along y-axis
+            WL.cfg.targetPosition = WL.cfg.HomePosition;
+            WL.cfg.targetPosition(2) = WL.cfg.targetPosition(2) + WL.cfg.TargetDistance;  % Moving 20 units along y-axis
 
 
 
@@ -107,7 +108,7 @@ classdef JumpCursors <  wl_experiment
        wl_draw_sphere(WL.Trial.TargetPosition + [0 0 -2]', WL.cfg.TargetRadius, [1 1 0], 'Alpha', 0.7);
     end
      if WL.cfg.hasJumped % WL.State.MOVEWAIT, WL.State.MOVING, WL.State.CURSORJUMP])
-             WL.cfg.CursorPosition(1) = WL.Robot.Position(1) + 5;
+             WL.cfg.CursorPosition(1) = WL.Robot.Position(1) + + WL.TrialData.JumpDistance(WL.TrialNumber);
             WL.cfg.CursorVisible = true; % Cursor initially not visible            
      end
   
@@ -170,23 +171,18 @@ classdef JumpCursors <  wl_experiment
 
                 case WL.State.SETUP % Setup details of next trial, but only when robot stationary and active.
                     if all(WL.Robot.Active)
+                        WL.cfg.PreviousPosition = WL.Robot.Position;
                         WL.cfg.shown = false;
                         WL.cfg.CursorVisible = false;
                         WL.trial_setup();
                         WL.state_next(WL.State.HOME);
                     end
-
-                % SETUP -> RETURN -> HOME ...
-                % go from SETUP to RETURN (instead of to HOME)
-                % RETURN: if Robot at home, start timer, go to HOME
-                % HOME: if Robot not at home, go to RETURN
-                %       if timer > time, go to START
                     
                 case WL.State.HOME % Start trial when robot in home position (and stationary and active).
                     if WL.Robot.Position(2) < 0
                         WL.cfg.CursorVisible = true;
                     end
-                    if (WL.robot_stationary() &&  WL.robot_home() && all(WL.Robot.Active)) || WL.Trial.ReturnFlag
+                    if (WL.robot_stationary() &&  WL.robot_home() && all(WL.Robot.Active))
                        % WL.cfg.hasJumped = false;
                         WL.state_next(WL.State.START);
                     end
@@ -217,7 +213,23 @@ classdef JumpCursors <  wl_experiment
                 case WL.State.GO % Go signal to cue movement.
                     WL.cfg.hasJumped = false;
                     WL.Timer.MovementReactionTimer.Reset();
-                    WL.play_sound(WL.cfg.highbeep);
+                    % Debug: Check the current SpeedCue
+    disp(['Trial ', num2str(WL.TrialNumber), ': SpeedCue = ', WL.TrialData.SpeedCue{WL.TrialNumber}]);
+
+    % Get the current trial's speed cue
+    currentSpeedCue = WL.TrialData.SpeedCue{WL.TrialNumber};
+
+    % Play the appropriate sound based on SpeedCue
+    if strcmp(currentSpeedCue, 'fast')
+        WL.play_sound(WL.cfg.highbeep);
+        disp('Fast movement cue played');
+    elseif strcmp(currentSpeedCue, 'slow')
+        WL.play_sound(WL.cfg.slowbeep);
+        disp('Slow movement cue played');
+    else
+        disp('Error: Unrecognized SpeedCue value');
+    end
+    
                     WL.Timer.StimulusTime.Reset();
                     WL.state_next(WL.State.MOVEWAIT);
                     
@@ -274,6 +286,17 @@ classdef JumpCursors <  wl_experiment
             if WL.State.FirstFlag
                 fprintf(1,'TrialStop\n');
                 WL.trial_stop();
+            end
+            if WL.State.Timer.GetTime > WL.cfg.FinishDelay
+        % Increment the trial number
+        WL.TrialNumber = WL.TrialNumber + 1;
+
+        % Check if there are more trials
+        if WL.TrialNumber <= height(WL.TrialData)
+            WL.state_next(WL.State.SETUP);  % Move to SETUP for the next trial
+        else
+            WL.state_next(WL.State.EXIT);  % If all trials are done, exit
+        end
             end
             
             WL.State.FirstFlag = false;
@@ -367,6 +390,10 @@ classdef JumpCursors <  wl_experiment
                 ok = WL.Robot.FieldPMove(WL.Trial.ReturnTargetPosition,0.5,0.2);
                 WL.Robot.PMoveFinished = 0;
             end
+
+
+        %    WL.printf('TrialStart() Trial=%d, Field=%d\n',WL.TrialNumber,WL.Trial.FieldType);
+        %    WL.printf('RobotField=%d, Started=%d\n',WL.Trial.FieldType,ok);
             
             ok = WL.Robot.RampUp();
             
@@ -389,7 +416,11 @@ classdef JumpCursors <  wl_experiment
         end
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
           function flag = movement_finished(WL)
-            flag = WL.Robot.Position(2) >= WL.cfg.TargetPosition(2);
+          currentPosition = WL.Robot.Position;  % Get the current robot position
+          velocity = norm(currentPosition - WL.cfg.PreviousPosition);  % Approximate velocity (distance per frame)
+          % Update previous position for the next frame
+          WL.cfg.PreviousPosition = currentPosition;
+          flag = WL.Robot.Position(2) >= WL.cfg.TargetPosition(2);
           end
 
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -415,6 +446,6 @@ classdef JumpCursors <  wl_experiment
             disp(flag);
             disp(fixed_distance);
             disp(current_distance_y >= fixed_distance);
-        end        
         end
-end    
+    end
+end

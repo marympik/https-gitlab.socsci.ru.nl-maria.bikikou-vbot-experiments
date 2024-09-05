@@ -36,20 +36,20 @@ WL.cfg.ErrorWait = 1.5;
 WL.cfg.TargetDistance = 20;
 WL.cfg.HomePosition = [ 0 -7 0 ]';
 WL.cfg.TargetPosition = WL.cfg.HomePosition + [ 0 WL.cfg.TargetDistance 0 ]';
+% Define the possible jump distances in meters
+WL.cfg.possibleJumpDistances = [-6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6];  % Possible jump distances
+% Add this line to your configuration file to make the velocity threshold configurable
+WL.cfg.VelocityThreshold = 0.02;  % Set the velocity threshold to 0.02 m/s
+
+
 
 %WL.cfg.rnum = 7;
 %rng(WL.cfg.rnum);
 
-% Load beeps for speed cues
-WL.cfg.fastBeep = WL.load_beeps(1000, 0.1);  % Higher pitch for fast trials
-WL.cfg.slowBeep = WL.load_beeps(250, 0.1);   % Lower pitch for slow trials
 
-% Set target times for fast and slow trials
-WL.cfg.FastTargetTime = 1.0;  % 1 second for fast trials
-WL.cfg.SlowTargetTime = 3.0;  % 3 seconds for slow trials
 
-WL.cfg.highbeep  = WL.load_beeps(500,0.05);
-WL.cfg.lowbeep   = WL.load_beeps([250 150],[0.5 0.5]);
+WL.cfg.highbeep = WL.load_beeps([1000 0 1000 0 1000], [0.05 0.1 0.05 0.1 0.05]);  % Three quick high-pitched beeps
+WL.cfg.slowbeep = WL.load_beeps([250 0 250 0 250], [0.3 0.3 0.3 0.3 0.3]);  % Three slower low-pitched beeps
 WL.cfg.threebeep = WL.load_beeps([600 0 700 0 800 0 800],[0.05 0.95 0.05 0.95 0.05 0.05 0.05 ]);
 WL.cfg.explosion = WL.load_audio('Correct.wav');
 
@@ -127,11 +127,16 @@ Exposure.Trial.Index.Fields = [ 2 2 3 ];
 
 PostExposure = PreExposure; %whether to permute within block
 %%
+
+numTrials = 480;
+
 A = WL.parse_trials(PreExposure);
 B = WL.parse_trials(Exposure);
 C = WL.parse_trials(PostExposure);
 
-T = parse_tree((3*A)+(10*B)+(3*C));
+% Combine these parsed trials into one table
+T = parse_tree((3*A) + (10*B) + (3*C));
+
 
 z = zeros(rows(T),1);
 
@@ -141,11 +146,32 @@ T.TargetPosition = bsxfun(@plus, bsxfun(@times,WL.cfg.TargetDistance,R), WL.cfg.
 
 T.MovementReactionTime = z;
 T.MovementDurationTime = z;
+T.ReturnFlag = zeros(height(T), 1);  % Creates a column of zeros (false)
 
-%add passive return movements
-T = WL.movement_return(T,WL.cfg.HomePosition');
+% %add passive return movements
+% T = WL.movement_return(T,WL.cfg.HomePosition');
 
+% If fewer than numTrials, repeat the trials
+if height(T) < numTrials
+    repeatFactor = ceil(numTrials / height(T));  % Calculate how many times to repeat the trials
+    T = repmat(T, repeatFactor, 1);  % Repeat the trials to ensure we have enough
+end
+
+% Trim to exactly numTrials if we have more than needed
+T = T(1:numTrials, :);  % Now T should have exactly 480 trials
+% Pre-allocate the SpeedCue column
+T.SpeedCue = cell(numTrials, 1);  % Create a new column called SpeedCue
+
+% Define the possible cues
+possibleCues = {'fast', 'slow'};
+
+% Randomly assign 'fast' or 'slow' to each trial
+for i = 1:numTrials
+    T.SpeedCue{i} = possibleCues{randi([1, 2])};
+end
+
+% Assign the trial data to WL.TrialData
 WL.TrialData = T;
-% Add speed cues to WL.TrialData
-T.SpeedCue = repmat({'fast'}, height(T), 1);  % Default to 'fast' for all trials
-T.SpeedCue(1:2:end) = {'slow'};  % Assign 'slow' to every other trial
+
+% Debug: Display the total number of trials
+disp(['Total number of trials: ', num2str(height(WL.TrialData))]);
