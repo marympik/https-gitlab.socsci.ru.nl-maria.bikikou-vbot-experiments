@@ -49,16 +49,18 @@ WL.cfg.VelocityThreshold = 0.02;  % Set the velocity threshold to 0.02 m/s
 
 
 % Fast beeps (0.2 seconds interval)
-WL.cfg.highbeep = WL.load_beeps([1000 0 1000 0 1000], [0.05 0.3 0.05 0.3 0.05]);
+WL.cfg.highbeep = WL.load_beeps([1000 0 1000 0 1000], [0.05 0.2 0.05 0.2 0.05]);
 WL.cfg.fastfourthbeep = WL.load_beeps(1200, 0.05);  % 4th beep for fast trials
 
 % Faster slow beeps (0.4 seconds interval instead of 0.5)
-WL.cfg.slowbeep = WL.load_beeps([250 0 250 0 250], [0.2 0.4 0.2 0.4 0.2]);
-WL.cfg.slowfourthbeep = WL.load_beeps(300, 0.2);  % 4th beep for slow trials
+WL.cfg.slowbeep = WL.load_beeps([250 0 250 0 250], [0.2 0.4 0.3 0.4 0.3]);
+WL.cfg.slowfourthbeep = WL.load_beeps(300, 0.3);  % 4th beep for slow trials
 
 % Single beep for explosion sound
 WL.cfg.explosion = WL.load_beeps(700, 0.05);  % Simple beep of 700 Hz for 0.3 seconds
 WL.cfg.threebeep = WL.load_beeps([600 0 700 0 800 0 800],[0.05 0.95 0.05 0.95 0.05 0.05 0.05 ]);
+%WL.cfg.explosion = WL.load_audio('Correct.wav');
+
 
 WL.cfg.plot_timing = 0;
 

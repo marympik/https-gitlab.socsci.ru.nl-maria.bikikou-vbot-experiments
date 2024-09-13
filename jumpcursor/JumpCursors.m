@@ -75,8 +75,9 @@ classdef JumpCursors <  wl_experiment
             WL.cfg.CursorVisibilityDuration = 0.1;
             % Initialize the target position relative to the home position
             WL.cfg.targetPosition = WL.cfg.HomePosition;
-            WL.cfg.targetPosition(2) = WL.cfg.targetPosition(2) + WL.cfg.TargetDistance;  % Moving 20 units along y-axis
-
+            WL.cfg.targetPosition(2) = WL.cfg.targetPosition(2) + WL.cfg.TargetDistance; % Moving 20 units along y-axis
+            WL.cfg.hasPlayedFourthBeep = false;
+            WL.cfg.hasPlayedThreeBeeps = false;
 
 
             WL.Timer.MovementDurationTimer = wl_timer;
@@ -174,6 +175,7 @@ classdef JumpCursors <  wl_experiment
                         WL.cfg.PreviousPosition = WL.Robot.Position;
                         WL.cfg.shown = false;
                         WL.cfg.CursorVisible = false;
+                        WL.cfg.hasPlayedFourthBeep = false;
                         WL.trial_setup();
                         WL.state_next(WL.State.HOME);
                     end
@@ -212,6 +214,7 @@ classdef JumpCursors <  wl_experiment
                     
                 case WL.State.GO % Go signal to cue movement.
                     WL.cfg.hasJumped = false;
+                    WL.cfg.hasPlayedFourthBeep = false;  % Reset the flag at the start of the trial
                     WL.Timer.MovementReactionTimer.Reset();
                     % Debug: Check the current SpeedCue
     disp(['Trial ', num2str(WL.TrialNumber), ': SpeedCue = ', WL.TrialData.SpeedCue{WL.TrialNumber}]);
@@ -219,19 +222,21 @@ classdef JumpCursors <  wl_experiment
     % Get the current trial's speed cue
     currentSpeedCue = WL.TrialData.SpeedCue{WL.TrialNumber};
 
-    % Play the appropriate sound based on SpeedCue
-    if strcmp(currentSpeedCue, 'fast')
+     if strcmp(currentSpeedCue, 'fast')
+        % Three quick high-pitched beeps
         WL.play_sound(WL.cfg.highbeep);
-        disp('Fast movement cue played');
+        disp('Playing first three fast beeps');
     elseif strcmp(currentSpeedCue, 'slow')
+        % Three slow low-pitched beeps
         WL.play_sound(WL.cfg.slowbeep);
-        disp('Slow movement cue played');
+        disp('Playing first three slow beeps');
     else
         disp('Error: Unrecognized SpeedCue value');
     end
     
-                    WL.Timer.StimulusTime.Reset();
-                    WL.state_next(WL.State.MOVEWAIT);
+    WL.cfg.hasPlayedThreeBeeps = true;  % Mark that the first three beeps were played
+    WL.Timer.StimulusTime.Reset();
+    WL.state_next(WL.State.MOVEWAIT);  % Move to next state
                     
                 case WL.State.MOVEWAIT
                     if  WL.movement_started()
@@ -245,6 +250,7 @@ classdef JumpCursors <  wl_experiment
                     end
         case WL.State.MOVING
             WL.cfg.CursorPosition = WL.Robot.Position; % Update cursor position continuously
+            WL.cfg.hasPlayedFourthBeep = false;
             disp('Current State: MOVING');
             %disp(['Cursor Position (MOVING): ', mat2str(WL.cfg.CursorPosition)]);
             if reaches_jump_point(WL) && ~WL.cfg.hasJumped % Check if it's time to jump
@@ -262,7 +268,7 @@ classdef JumpCursors <  wl_experiment
 
         case WL.State.POSTJUMP
              % Check if 100ms have passed since the jump
-            
+             WL.cfg.hasPlayedFourthBeep = false;  
              if WL.Timer.CursorVisibilityTimer.GetTime() > 0.1
                  WL.cfg.CursorVisible = false;
              end
@@ -370,38 +376,23 @@ classdef JumpCursors <  wl_experiment
 
 
             if ~WL.Trial.ReturnFlag
-                switch( WL.Trial.FieldType )
-                    case WL.cfg.Field.Null
-                        ok = WL.Robot.FieldNull();
-
-                    case  WL.cfg.Field.Curl
-                        ViscousMatrix = WL.Trial.FieldConstants(1) * [ 0 -1 0; ...
-                            1  0 0; ...
-                            0  0 0 ];
-                        ok = WL.Robot.FieldViscous(ViscousMatrix);
-
-                    case  WL.cfg.Field.Channel
-                     %   ok = WL.Robot.FieldChannel(WL.Trial.TargetPosition,WL.Trial.FieldConstants(1),WL.Trial.FieldConstants(2));
-
-                        ok = WL.Robot.FieldUser('RobotHybridChannel',-30,-0.05,0,WL.Robot.Position(:),WL.cfg.TargetPosition(:),100,0.050,0);
-
-                end
-            else
-                ok = WL.Robot.FieldPMove(WL.Trial.ReturnTargetPosition,0.5,0.2);
-                WL.Robot.PMoveFinished = 0;
+        % No more force fields here.
+        disp('Trial started without force implementation');
+           else
+        % Keeping the return movement if you need that, otherwise remove this too.
+            ok = WL.Robot.FieldPMove(WL.Trial.ReturnTargetPosition,0.5,0.2);
+            WL.Robot.PMoveFinished = 0;
             end
 
-
-        %    WL.printf('TrialStart() Trial=%d, Field=%d\n',WL.TrialNumber,WL.Trial.FieldType);
-        %    WL.printf('RobotField=%d, Started=%d\n',WL.Trial.FieldType,ok);
+    % Remove the force ramp-up call, if not necessary:
+    % ok = WL.Robot.RampUp();
+        
             
             ok = WL.Robot.RampUp();
             
         end
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        function miss_trial_func(WL,MissTrialType)
-            ok = WL.Robot.RampDown();
-            
+        function miss_trial_func(WL,MissTrialType)   
             WL.cfg.MissTrial=1;
             if  ~wl_trial_save(WL)   % Save the data for WL trial.
                 fprintf(1,'Cannot save Trial %d.\n',WL.TrialNumber);
@@ -420,9 +411,22 @@ classdef JumpCursors <  wl_experiment
           velocity = norm(currentPosition - WL.cfg.PreviousPosition);  % Approximate velocity (distance per frame)
           % Update previous position for the next frame
           WL.cfg.PreviousPosition = currentPosition;
-          flag = WL.Robot.Position(2) >= WL.cfg.TargetPosition(2);
-          end
+          flag = WL.Robot.Position(2) >= WL.cfg.TargetPosition(2) && ~WL.cfg.hasPlayedFourthBeep;
+             % If movement has finished and the 4th beep hasn't played yet
+          if flag && ~WL.cfg.hasPlayedFourthBeep
+          currentSpeedCue = WL.TrialData.SpeedCue{WL.TrialNumber};  % Get the current trial's speed
 
+        % Play the 4th beep based on whether the trial is fast or slow
+          if strcmp(currentSpeedCue, 'fast')
+            WL.play_sound(WL.cfg.fastfourthbeep);  % Play 4th beep for fast trials
+            disp('Playing the 4th fast beep at the target');
+          elseif strcmp(currentSpeedCue, 'slow')
+            WL.play_sound(WL.cfg.slowfourthbeep);  % Play 4th beep for slow trials
+            disp('Playing the 4th slow beep at the target');
+            WL.cfg.hasPlayedFourthBeep = true;
+          end
+          end
+          end
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function out = movement_started(WL)
             out = ~WL.robot_home();
