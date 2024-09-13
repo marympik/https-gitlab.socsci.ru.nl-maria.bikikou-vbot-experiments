@@ -39,7 +39,7 @@ WL.cfg.TargetPosition = WL.cfg.HomePosition + [ 0 WL.cfg.TargetDistance 0 ]';
 % Define the possible jump distances in meters
 WL.cfg.possibleJumpDistances = [-6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6];  % Possible jump distances
 % Add this line to your configuration file to make the velocity threshold configurable
-WL.cfg.VelocityThreshold = 0.02;  % Set the velocity threshold to 0.02 m/s
+WL.cfg.VelocityThreshold = 1;  % Set the velocity threshold to 0.02 m/s
 
 
 
