@@ -435,7 +435,7 @@ classdef JumpCursors <  wl_experiment
        
         function flag = reaches_jump_point(WL)
             % Define the fixed distance for the jump
-            fixed_distance = 10;  % 4 units
+            fixed_distance = 7;  % 4 units
         
             % Calculate the y-axis distance from the cursor's position to the home position
             current_distance_y = WL.cfg.CursorPosition(2) - WL.cfg.HomePosition(2);
