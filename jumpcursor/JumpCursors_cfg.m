@@ -39,7 +39,7 @@ WL.cfg.TargetPosition = WL.cfg.HomePosition + [ 0 WL.cfg.TargetDistance 0 ]';
 % Define the possible jump distances in meters
 WL.cfg.possibleJumpDistances = [-6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6];  % Possible jump distances
 % Add this line to your configuration file to make the velocity threshold configurable
-WL.cfg.VelocityThreshold = 1;  % Set the velocity threshold to 0.02 m/s
+WL.cfg.VelocityThreshold = 1;  % Set the velocity threshold to 0.01 m/s
 
 
 
@@ -53,7 +53,7 @@ WL.cfg.highbeep = WL.load_beeps([1000 0 1000 0 1000], [0.05 0.3 0.05 0.3 0.05]);
 WL.cfg.fastfourthbeep = WL.load_beeps(1200, 0.05);  % 4th beep for fast trials
 
 % Faster slow beeps (0.4 seconds interval instead of 0.5)
-WL.cfg.slowbeep = WL.load_beeps([250 0 250 0 250], [0.2 0.4 0.2 0.4 0.2]);
+WL.cfg.slowbeep = WL.load_beeps([250 0 250 0 250], [0.2 0.5 0.2 0.5 0.2]);
 WL.cfg.slowfourthbeep = WL.load_beeps(300, 0.2);  % 4th beep for slow trials
 
 % Single beep for explosion sound

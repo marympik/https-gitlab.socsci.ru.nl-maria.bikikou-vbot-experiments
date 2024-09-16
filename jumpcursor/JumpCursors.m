@@ -73,7 +73,7 @@ classdef JumpCursors <  wl_experiment
             WL.cfg.TargetVisible = false;
             WL.cfg.JumpTimer = 0;
             WL.Timer.CursorVisibilityTimer = wl_timer;
-            WL.cfg.CursorVisibilityDuration = 0.1;
+            WL.cfg.CursorVisibilityDuration = 0.05;
             % Initialize the target position relative to the home position
             WL.cfg.targetPosition = WL.cfg.HomePosition;
             WL.cfg.targetPosition(2) = WL.cfg.targetPosition(2) + WL.cfg.TargetDistance; % Moving 20 units along y-axis
@@ -108,15 +108,15 @@ classdef JumpCursors <  wl_experiment
             if WL.cfg.CursorVisible
                 % red visible
                 wl_draw_sphere(cursorPos, WL.cfg.CursorRadius, [1 0 0]);
-            else
-                % gray invisible
-                wl_draw_sphere(cursorPos, WL.cfg.CursorRadius, 0.3*[1 1 1]);
+            % else
+            %     % gray invisible
+            %     wl_draw_sphere(cursorPos, WL.cfg.CursorRadius, 0.3*[1 1 1]);
             end
 
             if WL.cfg.TargetVisible
                 wl_draw_sphere(WL.Trial.TargetPosition + [0 0 -2]', WL.cfg.TargetRadius, [1 1 0], 'Alpha', 0.7);
-            else
-                wl_draw_sphere(WL.Trial.TargetPosition + [0 0 -2]', WL.cfg.TargetRadius, 0.3*[1 1 1], 'Alpha', 0.7);
+            % else
+            %     wl_draw_sphere(WL.Trial.TargetPosition + [0 0 -2]', WL.cfg.TargetRadius, 0.3*[1 1 1], 'Alpha', 0.7);
             end
 
             % Always draw the home position
