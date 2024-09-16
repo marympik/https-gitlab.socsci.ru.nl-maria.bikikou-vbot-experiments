@@ -21,7 +21,6 @@ WL.cfg.CursorRadius = 0.5;
 WL.cfg.HomeRadius = 0.75;
 WL.cfg.TargetRadius = 0.75;
 
-% WL.cfg.RobotForceMax = 40;
 WL.cfg.StationarySpeed = 5;
 WL.cfg.StationaryTime = 0.1;
 
@@ -56,9 +55,9 @@ WL.cfg.fastfourthbeep = WL.load_beeps(1200, 0.05);  % 4th beep for fast trials
 WL.cfg.slowbeep = WL.load_beeps([250 0 250 0 250], [0.2 0.5 0.2 0.5 0.2]);
 WL.cfg.slowfourthbeep = WL.load_beeps(300, 0.2);  % 4th beep for slow trials
 
-% Single beep for explosion sound
-WL.cfg.explosion = WL.load_beeps(700, 0.05);  % Simple beep of 700 Hz for 0.3 seconds
-WL.cfg.threebeep = WL.load_beeps([600 0 700 0 800 0 800],[0.05 0.95 0.05 0.95 0.05 0.05 0.05 ]);
+% % Single beep for explosion sound
+% WL.cfg.explosion = WL.load_beeps(700, 0.05);  % Simple beep of 700 Hz for 0.3 seconds
+% WL.cfg.threebeep = WL.load_beeps([600 0 700 0 800 0 800],[0.05 0.95 0.05 0.95 0.05 0.05 0.05 ]);
 
 WL.cfg.plot_timing = 0;
 
@@ -95,19 +94,7 @@ Fields{1}.FieldConstants	= [0 0];
 Fields{1}.FieldAngle	= 0.0;
 Fields{1}.FieldMartrix = eye(3);
 
-% % Viscous curl field
-% Fields{2}.FieldType = 1;
-% Fields{2}.FieldName = 'Curl';
-% Fields{2}.FieldConstants	= [0.2 0];
-% Fields{2}.FieldAngle	= 90.0;
-% Fields{2}.FieldMartrix = eye(3);
-% 
-% % Channel trial
-% Fields{3}.FieldType = 2;
-% Fields{3}.FieldName = 'Channel';
-% Fields{3}.FieldConstants	= [-30.000  -0.05];
-% Fields{3}.FieldAngle	= 0.0;
-% Fields{3}.FieldMartrix =	eye(3);
+
 
 % This assigns to cfg to make easy in experiment
 for k=1:length(Fields)
@@ -155,7 +142,7 @@ T.ReturnFlag = zeros(height(T), 1);  % Creates a column of zeros (false)
 % %add passive return movements
 % T = WL.movement_return(T,WL.cfg.HomePosition');
 
-% If fewer than numTrials, repeat the trials
+% If fewer than numTrials, repeat the trialslowbeep
 if height(T) < numTrials
     repeatFactor = ceil(numTrials / height(T));  % Calculate how many times to repeat the trials
     T = repmat(T, repeatFactor, 1);  % Repeat the trials to ensure we have enough

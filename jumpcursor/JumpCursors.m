@@ -33,10 +33,7 @@ classdef JumpCursors <  wl_experiment
                 'MOVING','CURSORJUMP','POSTJUMP','FINISH','NEXT','INTERTRIAL','EXIT','TIMEOUT','ERROR','REST');
             WL.cfg.count=1;
             WL.cfg.CursorPositionHistory=zeros(50,3);
-
-
-            % Define possible jump distances in cm (converted to meters if needed)
-            %possibleJumpDistances = [0.04, 0.05, 0.06, 0.07, 0.08];  % in meters
+  
 
             % Check if the JumpDistance field exists, if not, initialize it
             if ~ismember('JumpDistance', WL.TrialData.Properties.VariableNames)
@@ -153,7 +150,7 @@ classdef JumpCursors <  wl_experiment
 
         function state_process_func(WL)
             if  WL.cfg.TrialRunning && any(~WL.Robot.Active) % If robot is not active, abort current trial.
-                WL.trial_abort('Handle Switch',WL.State.SETUP);
+                % WL.trial_abort('Handle Switch',WL.State.SETUP);
             end
 
             switch WL.State.Current % State processing.
@@ -263,7 +260,7 @@ classdef JumpCursors <  wl_experiment
                 case WL.State.POSTJUMP
                     % Check if 100ms have passed since the jump
                     WL.cfg.hasPlayedFourthBeep = false;
-                    if WL.Timer.CursorVisibilityTimer.GetTime() > 0.1
+                    if WL.Timer.CursorVisibilityTimer.GetTime() > 0.05
                         WL.cfg.CursorVisible = false;
                     end
 
@@ -435,7 +432,7 @@ classdef JumpCursors <  wl_experiment
        
         function flag = reaches_jump_point(WL)
             % Define the fixed distance for the jump
-            fixed_distance = 7;  % 4 units
+            fixed_distance = 6;  % 4 units
         
             % Calculate the y-axis distance from the cursor's position to the home position
             current_distance_y = WL.cfg.CursorPosition(2) - WL.cfg.HomePosition(2);
