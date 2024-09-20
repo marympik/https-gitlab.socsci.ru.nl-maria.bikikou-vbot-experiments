@@ -76,18 +76,19 @@ classdef JumpCursors <  wl_experiment
             WL.cfg.targetPosition(2) = WL.cfg.targetPosition(2) + WL.cfg.TargetDistance; % Moving 20 units along y-axis
             WL.cfg.hasPlayedFourthBeep = false;
             WL.cfg.hasPlayedThreeBeeps = false;
-            WL.cfg.isPracticeTrial = true;  % Assuming starting with practice trials; adjust as needed
-            WL.cfg.targetDurationFast = 0.5;  % example value in seconds for fast movements
+            WL.cfg.isPracticeTrial = true;  % Assuming starting with practice trials;
+            WL.cfg.targetDurationFast = 0.25;  % example value in seconds for fast movements
             WL.cfg.targetDurationSlow = 1.5;  % example value in seconds for slow movements
             WL.cfg.tolerance = 0.2;  % tolerance in seconds
             WL.Timer.FeedbackTimer = wl_timer;
             WL.cfg.feedbackMessage = '';  % Initialize as empty
-            WL.cfg.feedbackColor = [1 0 0];  % Initialize as black (or any default)
-            WL.Timer.MovementDurationTimer = wl_timer;
-            WL.Timer.MovementReactionTimer = wl_timer;
-            WL.Timer.StimulusTime = wl_timer;
-
-
+            WL.cfg.feedbackColor = [1 0 0];  
+            WL.Timer.MovementDurationTimer = wl_timer;  % Initialize the movement duration timer
+            WL.Timer.FeedbackTimer = wl_timer;          % Initialize the feedback timer
+            WL.Timer.MovementReactionTimer = wl_timer;  % Initialize other timers
+            WL.Timer.StimulusTime = wl_timer;           % Initialize other timers
+            WL.cfg.movementDuration = WL.Timer.MovementDurationTimer.GetTime();
+    
         end
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function idle_func(WL)
@@ -101,11 +102,14 @@ classdef JumpCursors <  wl_experiment
 
             Screen('BeginOpenGL', win);
 
-            txt = sprintf('State = %s, x=%.1f, y=%.1f, CursorVisible=%d, ', WL.State.Name{WL.State.Current}, WL.Robot.Position(1), WL.Robot.Position(2), int8(WL.cfg.CursorVisible));
+            % txt = sprintf('State = %s, x=%.1f, y=%.1f, CursorVisible=%d, ', WL.State.Name{WL.State.Current}, WL.Robot.Position(1), WL.Robot.Position(2), int8(WL.cfg.CursorVisible));
+            txt = sprintf('FeedbackMessage = %s ', WL.cfg.feedbackMessage);
             v = sqrt(sum(WL.Robot.Velocity .^2));
             % txt = sprintf('velocity = %.2f', v);
+            txt = sprintf( 'Time = %.2f ', WL.Timer.FeedbackTimer.GetTime);
             WL.draw_text(txt, [0 0 0], 'Scale', 0.5);
             
+
             cursorPos = WL.Robot.Position + [WL.cfg.hasJumped * WL.Trial.JumpDistance, 0, 0]';
             if WL.cfg.CursorVisible
                 % red visible
@@ -128,17 +132,16 @@ classdef JumpCursors <  wl_experiment
             disp(['isPracticeTrial: ', num2str(isfield(WL.cfg, 'isPracticeTrial') && WL.cfg.isPracticeTrial)]);
             disp(['hasFeedbackMessage: ', num2str(isfield(WL.cfg, 'feedbackMessage') && ~isempty(WL.cfg.feedbackMessage))]);
             disp(['timerCondition: ', num2str(WL.Timer.FeedbackTimer.GetTime() < 1)]);
-            disp(['FeedbackMessage: ', WL.cfg.feedbackMessage]);
+            disp(['Expected Slow Duration: ', num2str(WL.cfg.targetDurationSlow), ' seconds with tolerance ', num2str(WL.cfg.tolerance)]);
+           
             
-            
-                % Temporarily increase the timer condition for debugging
-    if WL.cfg.isPracticeTrial && ~isempty(WL.cfg.feedbackMessage) && WL.Timer.FeedbackTimer.GetTime() < 5  % Increased time for visibility
-        WL.draw_text(WL.cfg.feedbackMessage, WL.cfg.feedbackColor, 'Scale', 0.7);
-    else
-        disp(['Feedback not displayed. Timer: ', num2str(WL.Timer.FeedbackTimer.GetTime())]);
-    end
-        
-            
+                                       
+            if WL.cfg.isPracticeTrial && ~isempty(WL.cfg.feedbackMessage) && WL.Timer.FeedbackTimer.GetTime() < 1  % Extend to 5 seconds for testing
+                WL.draw_text(WL.cfg.feedbackMessage, [0 10 0], 'Scale', 0.7);
+            else
+                disp(['Feedback not displayed. Timer: ', num2str(WL.Timer.FeedbackTimer.GetTime())]);
+            end
+         
             if WL.cfg.hasJumped
                 elapsedTime = WL.Timer.CursorVisibilityTimer.GetTime();
                 if elapsedTime > WL.cfg.CursorVisibilityDuration
@@ -293,7 +296,9 @@ classdef JumpCursors <  wl_experiment
                     if WL.movement_finished()
                         % If movement has finished and the 4th beep hasn't played yet
                               % Generate feedback for practice trials
-                    WL.generate_feedback();  % This will store feedback message and color
+                               WL.cfg.movementDuration = WL.Timer.MovementDurationTimer.GetTime();
+                               disp(['Movement Duration Calculated: ', num2str(WL.cfg.movementDuration)]);
+                               WL.generate_feedback();  % This will store feedback message and color
                         if ~WL.cfg.hasPlayedFourthBeep
                             currentSpeedCue = WL.Trial.SpeedCue;  % Get the current trial's speed
             
@@ -458,29 +463,44 @@ classdef JumpCursors <  wl_experiment
         function keyboard_func(WL,keyname)  end
         function flip_func(WL)      end
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    function generate_feedback(WL)
-    disp('generate_feedback function called');
-    movementDuration = WL.Trial.MovementDurationTime;
-    disp(['Movement Duration: ', num2str(movementDuration)]);
+ function generate_feedback(WL)
+     disp('generate_feedback function called');
+     movementDuration = WL.Trial.MovementDurationTime;
+     disp(['Movement Duration: ', num2str(movementDuration)]);
 
-    if WL.cfg.isPracticeTrial
-        currentSpeedCue = WL.TrialData.SpeedCue{WL.TrialNumber};
-        disp(['Current SpeedCue: ', currentSpeedCue]);
+     if WL.cfg.isPracticeTrial
+         currentSpeedCue = WL.Trial.SpeedCue;
+         disp(['Current SpeedCue: ', currentSpeedCue]);
 
-        if strcmp(currentSpeedCue, 'fast')
-            if movementDuration < (WL.cfg.targetDurationFast - WL.cfg.tolerance)
-                WL.cfg.feedbackMessage = 'Too Fast!';
-            elseif movementDuration > (WL.cfg.targetDurationFast + WL.cfg.tolerance)
-                WL.cfg.feedbackMessage = 'Too Slow!';
-            else
-                WL.cfg.feedbackMessage = 'Correct Speed!';
-            end
-        % Implement similar logic for 'slow' if necessary
-        end
-        disp(['Feedback Message Set: ', WL.cfg.feedbackMessage]);
-        WL.Timer.FeedbackTimer.Reset();
-    end
-    end
+         if strcmp(currentSpeedCue, 'slow')
+             targetDuration = WL.cfg.targetDurationSlow;
+         else
+             targetDuration = WL.cfg.targetDurationFast;
+         end
+
+         % Log the expected duration for debugging
+         disp(['Expected Duration: ', num2str(targetDuration), ' seconds with tolerance ', num2str(WL.cfg.tolerance)]);
+
+         % Determine the feedback message based on the movement duration
+         movementDuration = WL.cfg.movementDuration;
+         disp(['Movement Duration: ', num2str(movementDuration), ' seconds']);
+
+         if movementDuration < (targetDuration - WL.cfg.tolerance)
+             WL.cfg.feedbackMessage = 'Too Fast!';
+         elseif movementDuration > (targetDuration + WL.cfg.tolerance)
+             WL.cfg.feedbackMessage = 'Too Slow!';
+         else
+             WL.cfg.feedbackMessage = 'Correct Speed!';
+         end
+
+         % Log the feedback message for debugging
+         disp(['Feedback Message Set: ', WL.cfg.feedbackMessage]);
+
+         % Reset the feedback timer immediately after setting the feedback
+         WL.Timer.FeedbackTimer.Reset();
+         disp(['Feedback Timer Reset at: ', num2str(cputime)]);
+     end
+ end
    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
        
         function flag = reaches_jump_point(WL)
@@ -498,4 +518,4 @@ classdef JumpCursors <  wl_experiment
             disp(current_distance_y >= fixed_distance);
         end
     end
-   end
+    end
