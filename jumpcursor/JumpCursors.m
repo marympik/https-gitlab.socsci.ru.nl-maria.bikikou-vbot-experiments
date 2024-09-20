@@ -76,8 +76,13 @@ classdef JumpCursors <  wl_experiment
             WL.cfg.targetPosition(2) = WL.cfg.targetPosition(2) + WL.cfg.TargetDistance; % Moving 20 units along y-axis
             WL.cfg.hasPlayedFourthBeep = false;
             WL.cfg.hasPlayedThreeBeeps = false;
-
-
+            WL.cfg.isPracticeTrial = true;  % Assuming starting with practice trials; adjust as needed
+            WL.cfg.targetDurationFast = 0.5;  % example value in seconds for fast movements
+            WL.cfg.targetDurationSlow = 1.5;  % example value in seconds for slow movements
+            WL.cfg.tolerance = 0.2;  % tolerance in seconds
+            WL.Timer.FeedbackTimer = wl_timer;
+            WL.cfg.feedbackMessage = '';  % Initialize as empty
+            WL.cfg.feedbackColor = [1 0 0];  % Initialize as black (or any default)
             WL.Timer.MovementDurationTimer = wl_timer;
             WL.Timer.MovementReactionTimer = wl_timer;
             WL.Timer.StimulusTime = wl_timer;
@@ -118,7 +123,22 @@ classdef JumpCursors <  wl_experiment
 
             % Always draw the home position
             wl_draw_sphere(WL.cfg.HomePosition + [0 0 -2]', WL.cfg.HomeRadius, [0 1 1], 'Alpha', 0.7);
-
+          
+            % Debugging output to understand which conditions are failing
+            disp(['isPracticeTrial: ', num2str(isfield(WL.cfg, 'isPracticeTrial') && WL.cfg.isPracticeTrial)]);
+            disp(['hasFeedbackMessage: ', num2str(isfield(WL.cfg, 'feedbackMessage') && ~isempty(WL.cfg.feedbackMessage))]);
+            disp(['timerCondition: ', num2str(WL.Timer.FeedbackTimer.GetTime() < 1)]);
+            disp(['FeedbackMessage: ', WL.cfg.feedbackMessage]);
+            
+            
+                % Temporarily increase the timer condition for debugging
+    if WL.cfg.isPracticeTrial && ~isempty(WL.cfg.feedbackMessage) && WL.Timer.FeedbackTimer.GetTime() < 5  % Increased time for visibility
+        WL.draw_text(WL.cfg.feedbackMessage, WL.cfg.feedbackColor, 'Scale', 0.7);
+    else
+        disp(['Feedback not displayed. Timer: ', num2str(WL.Timer.FeedbackTimer.GetTime())]);
+    end
+        
+            
             if WL.cfg.hasJumped
                 elapsedTime = WL.Timer.CursorVisibilityTimer.GetTime();
                 if elapsedTime > WL.cfg.CursorVisibilityDuration
@@ -241,6 +261,12 @@ classdef JumpCursors <  wl_experiment
                     end
                 case WL.State.MOVING
                     WL.cfg.CursorPosition = WL.Robot.Position; % Update cursor position continuously
+                    if WL.cfg.isPracticeTrial
+                        disp('This is a practice trial');
+                        % You can simplify the behavior for practice trials here if needed
+                    else
+                        % Regular behavior for experimental trials
+                    end
                     WL.cfg.hasPlayedFourthBeep = false;
                     disp('Current State: MOVING');
                     %disp(['Cursor Position (MOVING): ', mat2str(WL.cfg.CursorPosition)]);
@@ -266,6 +292,8 @@ classdef JumpCursors <  wl_experiment
 
                     if WL.movement_finished()
                         % If movement has finished and the 4th beep hasn't played yet
+                              % Generate feedback for practice trials
+                    WL.generate_feedback();  % This will store feedback message and color
                         if ~WL.cfg.hasPlayedFourthBeep
                             currentSpeedCue = WL.Trial.SpeedCue;  % Get the current trial's speed
             
@@ -282,6 +310,7 @@ classdef JumpCursors <  wl_experiment
                         end
                         WL.cfg.TargetVisible = false;
                         WL.Trial.MovementDurationTime = WL.Timer.MovementDurationTimer.GetTime;
+                       
                         if ~WL.Trial.ReturnFlag
                             WL.cfg.explosion1.ExplodePop(WL.Trial.TargetPosition);
                         end
@@ -428,6 +457,30 @@ classdef JumpCursors <  wl_experiment
        
         function keyboard_func(WL,keyname)  end
         function flip_func(WL)      end
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    function generate_feedback(WL)
+    disp('generate_feedback function called');
+    movementDuration = WL.Trial.MovementDurationTime;
+    disp(['Movement Duration: ', num2str(movementDuration)]);
+
+    if WL.cfg.isPracticeTrial
+        currentSpeedCue = WL.TrialData.SpeedCue{WL.TrialNumber};
+        disp(['Current SpeedCue: ', currentSpeedCue]);
+
+        if strcmp(currentSpeedCue, 'fast')
+            if movementDuration < (WL.cfg.targetDurationFast - WL.cfg.tolerance)
+                WL.cfg.feedbackMessage = 'Too Fast!';
+            elseif movementDuration > (WL.cfg.targetDurationFast + WL.cfg.tolerance)
+                WL.cfg.feedbackMessage = 'Too Slow!';
+            else
+                WL.cfg.feedbackMessage = 'Correct Speed!';
+            end
+        % Implement similar logic for 'slow' if necessary
+        end
+        disp(['Feedback Message Set: ', WL.cfg.feedbackMessage]);
+        WL.Timer.FeedbackTimer.Reset();
+    end
+    end
    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
        
         function flag = reaches_jump_point(WL)
@@ -445,4 +498,4 @@ classdef JumpCursors <  wl_experiment
             disp(current_distance_y >= fixed_distance);
         end
     end
-end
+   end
