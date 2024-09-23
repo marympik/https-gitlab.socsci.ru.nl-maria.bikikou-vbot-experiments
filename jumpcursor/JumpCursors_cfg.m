@@ -43,12 +43,6 @@ WL.cfg.VelocityThreshold = 1;  % Set the velocity threshold to 0.01 m/s
 
 
 
-
-%WL.cfg.rnum = 7;
-%rng(WL.cfg.rnum);
-
-
-
 % Fast beeps (0.2 seconds interval)
 WL.cfg.highbeep = WL.load_beeps([1000 0 1000 0 1000], [0.05 0.3 0.05 0.3 0.05]);
 WL.cfg.fastfourthbeep = WL.load_beeps(1200, 0.05);  % 4th beep for fast trials
@@ -57,9 +51,6 @@ WL.cfg.fastfourthbeep = WL.load_beeps(1200, 0.05);  % 4th beep for fast trials
 WL.cfg.slowbeep = WL.load_beeps([250 0 250 0 250], [0.2 0.5 0.2 0.5 0.2]);
 WL.cfg.slowfourthbeep = WL.load_beeps(300, 0.2);  % 4th beep for slow trials
 
-% % Single beep for explosion sound
-% WL.cfg.explosion = WL.load_beeps(700, 0.05);  % Simple beep of 700 Hz for 0.3 seconds
-% WL.cfg.threebeep = WL.load_beeps([600 0 700 0 800 0 800],[0.05 0.95 0.05 0.95 0.05 0.05 0.05 ]);
 
 WL.cfg.plot_timing = 0;
 
@@ -105,66 +96,43 @@ end
 
 
 TargetAngle = {pi/2.0};
-
+% 
 WL.cfg.Fields = Fields;
 WL.cfg.TargetAngle = TargetAngle;
 %%
 % Create blocks based on the indices above
 % P sub-structure are variables that can change with each trial
 % I sub-structure are variables that do not change within a block
+%% New Section: Creating Trials with Speeds and Jumps
+jumps = WL.cfg.possibleJumpDistances;  % Array of 13 jumps
+speeds = {'slow', 'fast'};  % Two possible speeds
+nPerCondition = 20;  % Number of repetitions per condition
 
-PreExposure.Trial.Index.Fields = [1 1 1];  % Only use the 'Null' field for all trials
-PreExposure.Trial.Index.TargetAngle = [1 1 1];  % Keep the same target angle structure
+% Calculate the total number of trials
+nTrials = numel(jumps) * numel(speeds) * nPerCondition;
 
-Exposure = PreExposure;  % Keep the same structure for Exposure trials
-PostExposure = PreExposure;  % Keep the same structure for PostExposure trials
+% Generate the pools of jumps and speeds
+jumpsPool = repmat(jumps, 1, numel(speeds) * nPerCondition);  % Repeat jumps
+speedsPool = repelem(speeds, numel(jumps) * nPerCondition);   % Repeat speeds for each jump
 
-%%
+% Randomize the trials
+jumpsPermuted = jumpsPool(randperm(nTrials));
+speedsPermuted = speedsPool(randperm(nTrials));
 
-numTrials = 480;
+% Create the trial table directly
+T = table(jumpsPermuted', speedsPermuted', 'VariableNames', {'JumpDistance', 'SpeedCue'});
 
-A = WL.parse_trials(PreExposure);
-B = WL.parse_trials(Exposure);
-C = WL.parse_trials(PostExposure);
+% Add additional fields like ReturnFlag, etc.
+T.ReturnFlag = zeros(nTrials, 1);  % Assuming no return flag is needed (all zeros)
+T.MovementReactionTime = nan(nTrials, 1);  % Initialize movement reaction time
+T.MovementDurationTime = nan(nTrials, 1);  % Initialize movement duration time
 
-% Combine these parsed trials into one table
-T = parse_tree((3*A) + (10*B) + (3*C));
+% No need to manually add EOT
 
-
-z = zeros(rows(T),1);
-
-%create more table parameters
-R = [cos(T.TargetAngle) sin(T.TargetAngle) z];
-T.TargetPosition = bsxfun(@plus, bsxfun(@times,WL.cfg.TargetDistance,R), WL.cfg.HomePosition');
-
-T.MovementReactionTime = z;
-T.MovementDurationTime = z;
-T.ReturnFlag = zeros(height(T), 1);  % Creates a column of zeros (false)
-
-% %add passive return movements
-% T = WL.movement_return(T,WL.cfg.HomePosition');
-
-% If fewer than numTrials, repeat the trialslowbeep
-if height(T) < numTrials
-    repeatFactor = ceil(numTrials / height(T));  % Calculate how many times to repeat the trials
-    T = repmat(T, repeatFactor, 1);  % Repeat the trials to ensure we have enough
-end
-
-% Trim to exactly numTrials if we have more than needed
-T = T(1:numTrials, :);  % Now T should have exactly 480 trials
-% Pre-allocate the SpeedCue column
-T.SpeedCue = cell(numTrials, 1);  % Create a new column called SpeedCue
-
-% Define the possible cues
-possibleCues = {'fast', 'slow'};
-
-% Randomly assign 'fast' or 'slow' to each trial
-for i = 1:numTrials
-    T.SpeedCue{i} = possibleCues{randi([1, 2])};
-end
-
-% Assign the trial data to WL.TrialData
+% Assign the generated trial data to WL.TrialData
 WL.TrialData = T;
 
 % Debug: Display the total number of trials
 disp(['Total number of trials: ', num2str(height(WL.TrialData))]);
+
+end

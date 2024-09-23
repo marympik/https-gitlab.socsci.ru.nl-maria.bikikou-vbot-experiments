@@ -47,15 +47,6 @@ classdef JumpCursors <  wl_experiment
                 WL.TrialData.JumpDistance(i) = possibleJumpDistances(randi(length(possibleJumpDistances)));  % Randomly select a distance
             end
 
-            % Additional initialization logic...
-            for i = 1:3
-                j = find((WL.TrialData.block_index == i) & ((WL.TrialData.FieldType == 0) | (WL.TrialData.FieldType == 1)));
-                WL.cfg.PhaseTrialCount(i) = length(j);
-            end
-
-
-            WL.cfg.explosion1 = wl_draw_explode(WL.cfg.TargetRadius, [1 1 1], 80/100 );
-
             WL.Trial.TrialNumber = 0;
 
             WL.cfg.cb=wl_circbuffer(50,3);
@@ -80,7 +71,6 @@ classdef JumpCursors <  wl_experiment
             WL.cfg.targetDurationFast = 0.25;  % example value in seconds for fast movements
             WL.cfg.targetDurationSlow = 1.5;  % example value in seconds for slow movements
             WL.cfg.tolerance = 0.2;  % tolerance in seconds
-            WL.Timer.FeedbackTimer = wl_timer;
             WL.cfg.feedbackMessage = '';  % Initialize as empty
             WL.cfg.feedbackColor = [1 0 0];  
             WL.Timer.MovementDurationTimer = wl_timer;  % Initialize the movement duration timer
@@ -108,7 +98,14 @@ classdef JumpCursors <  wl_experiment
             % txt = sprintf('velocity = %.2f', v);
             txt = sprintf( 'Time = %.2f ', WL.Timer.FeedbackTimer.GetTime);
             WL.draw_text(txt, [0 0 0], 'Scale', 0.5);
-            
+
+            if isfield(WL.Trial, 'TargetPosition') && ~isempty(WL.Trial.TargetPosition)
+                wl_draw_sphere(WL.Trial.TargetPosition + [0 0 -2]', WL.cfg.TargetRadius, [1 1 0], 'Alpha', 0.7);
+            else
+                disp('TargetPosition not set for this trial');
+            end
+
+   
 
             cursorPos = WL.Robot.Position + [WL.cfg.hasJumped * WL.Trial.JumpDistance, 0, 0]';
             if WL.cfg.CursorVisible
@@ -120,13 +117,14 @@ classdef JumpCursors <  wl_experiment
             end
 
             if WL.cfg.TargetVisible
-                wl_draw_sphere(WL.Trial.TargetPosition + [0 0 -2]', WL.cfg.TargetRadius, [1 1 0], 'Alpha', 0.7);
+                wl_draw_sphere(WL.cfg.TargetPosition + [0 0 -2]', WL.cfg.TargetRadius, [1 1 0], 'Alpha', 0.7);
             % else
             %     wl_draw_sphere(WL.Trial.TargetPosition + [0 0 -2]', WL.cfg.TargetRadius, 0.3*[1 1 1], 'Alpha', 0.7);
             end
 
             % Always draw the home position
             wl_draw_sphere(WL.cfg.HomePosition + [0 0 -2]', WL.cfg.HomeRadius, [0 1 1], 'Alpha', 0.7);
+
           
             % Debugging output to understand which conditions are failing
             disp(['isPracticeTrial: ', num2str(isfield(WL.cfg, 'isPracticeTrial') && WL.cfg.isPracticeTrial)]);
@@ -316,9 +314,9 @@ classdef JumpCursors <  wl_experiment
                         WL.cfg.TargetVisible = false;
                         WL.Trial.MovementDurationTime = WL.Timer.MovementDurationTimer.GetTime;
                        
-                        if ~WL.Trial.ReturnFlag
-                            WL.cfg.explosion1.ExplodePop(WL.Trial.TargetPosition);
-                        end
+                        % if ~WL.Trial.ReturnFlag
+                        %     WL.cfg.explosion1.ExplodePop(WL.Trial.TargetPosition);
+                        % end
                         disp('POSTJUMP TO FINISH');
                         % Example of collecting data after a trial ends
                         WL.state_next(WL.State.FINISH);
@@ -414,7 +412,7 @@ classdef JumpCursors <  wl_experiment
         end
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function trial_start_func(WL)
-
+        WL.Trial.TargetPosition = WL.cfg.TargetPosition;
 
             if ~WL.Trial.ReturnFlag
                 % No more force fields here.
@@ -468,6 +466,10 @@ classdef JumpCursors <  wl_experiment
      movementDuration = WL.Trial.MovementDurationTime;
      disp(['Movement Duration: ', num2str(movementDuration)]);
 
+      if WL.TrialNumber <= 20
+        movementDuration = WL.Trial.MovementDurationTime;
+        disp(['Movement Duration: ', num2str(movementDuration)]);
+
      if WL.cfg.isPracticeTrial
          currentSpeedCue = WL.Trial.SpeedCue;
          disp(['Current SpeedCue: ', currentSpeedCue]);
@@ -477,6 +479,7 @@ classdef JumpCursors <  wl_experiment
          else
              targetDuration = WL.cfg.targetDurationFast;
          end
+    
 
          % Log the expected duration for debugging
          disp(['Expected Duration: ', num2str(targetDuration), ' seconds with tolerance ', num2str(WL.cfg.tolerance)]);
@@ -500,6 +503,7 @@ classdef JumpCursors <  wl_experiment
          WL.Timer.FeedbackTimer.Reset();
          disp(['Feedback Timer Reset at: ', num2str(cputime)]);
      end
+      end
  end
    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
        
@@ -518,4 +522,4 @@ classdef JumpCursors <  wl_experiment
             disp(current_distance_y >= fixed_distance);
         end
     end
-    end
+end
