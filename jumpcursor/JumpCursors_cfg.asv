@@ -46,18 +46,21 @@ function JumpCursors_cfg(WL, participantNumber)
     WL.cfg.TargetDistance = 20;
     WL.cfg.HomePosition = [0 -7 0]';
     WL.cfg.TargetPosition = WL.cfg.HomePosition + [0 WL.cfg.TargetDistance 0]';
-    WL.cfg.isPracticeTrial = true;
 
     % Define the possible jump distances in meters
     WL.cfg.possibleJumpDistances = [-6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6]; 
     WL.cfg.VelocityThreshold = 1;
 
-     WL.cfg.plot_timing = 0;
-
+      % Null field.
+    Fields{1}.FieldType = 0;
+    Fields{1}.FieldName = 'Null';
+    Fields{1}.FieldConstants	= [0 0];
+    Fields{1}.FieldAngle	= 0.0;
+    Fields{1}.FieldMartrix = eye(3);
+    % The over-ride goes here to copy 'GW' variables set by the GUI/defaults to 'cfg'.
     WL.overide_cfg_defaults();
 
-
-if ~isfield(WL.cfg, 'graphics_config')
+    if ~isfield(WL.cfg, 'graphics_config')
     % wl_cfg_rig: if ComputerName has no match, hardcoded there
     % wl_start_screen: else read here via MexReadConfig('GRAPHICS')
     % but the latter does not work yet (2024-08) so hardcoding here
@@ -66,40 +69,27 @@ if ~isfield(WL.cfg, 'graphics_config')
     % does not work yet, so hardcoding here
 
     % running on robot (set according to screen specs)
+
     if ~WL.cfg.MouseFlag
         % https://www.displayspecifications.com/en/model/446a828
         dispWidth  = 59.7888;
         dispHeight = 33.6312;
         WL.cfg.graphics_config.Xmin_Xmax = [ -1  1 ] * dispWidth /2;
         WL.cfg.graphics_config.Ymin_Ymax = [  1 -1 ] * dispHeight/2;
-    else
-        % running sim in lab (set same as in wl_cfg_rig)
+                % running sim in lab (set same as in wl_cfg_rig)
         WL.cfg.graphics_config.Xmin_Xmax = [ -1  1 ] * 30;
         WL.cfg.graphics_config.Ymin_Ymax = [ -1  1 ] * 15;
+    end 
+    
+    for k=1:length(Fields)
+        WL.cfg.Field.(Fields{k}.FieldName) = Fields{k}.FieldType ;
     end
-end
 
-%%
-% Null field.
-Fields{1}.FieldType = 0;
-Fields{1}.FieldName = 'Null';
-Fields{1}.FieldConstants	= [0 0];
-Fields{1}.FieldAngle	= 0.0;
-Fields{1}.FieldMartrix = eye(3);
-
-
-
-% This assigns to cfg to make easy in experiment
-for k=1:length(Fields)
-    WL.cfg.Field.(Fields{k}.FieldName) = Fields{k}.FieldType ;
-end
-
-
-TargetAngle = {pi/2.0};
+   
+    TargetAngle = {pi/2.0};
 % 
 WL.cfg.Fields = Fields;
 WL.cfg.TargetAngle = TargetAngle;
-
 
     % Fast beeps (0.2 seconds interval)
     WL.cfg.highbeep = WL.load_beeps([1000 0 1000 0 1000], [0.05 0.3 0.05 0.3 0.05]);
@@ -108,6 +98,8 @@ WL.cfg.TargetAngle = TargetAngle;
     % Faster slow beeps (0.4 seconds interval instead of 0.5)
     WL.cfg.slowbeep = WL.load_beeps([250 0 250 0 250], [0.2 0.5 0.2 0.5 0.2]);
     WL.cfg.slowfourthbeep = WL.load_beeps(300, 0.2);  % 4th beep for slow trials
+
+    WL.cfg.plot_timing = 0;
 
 
     % Create blocks with fast and slow movements

@@ -3,54 +3,41 @@ classdef JumpCursors < wl_experiment
         % Main function to run the experiment
         function run(WL, participantNumber, varargin)
             try
-                % Initialize the GUI
-                WL.GUI = wl_gui('test', 'JumpCursors_cfg', 'FF', varargin{:});
+                % Initialize GUI
+                WL.GUI = wl_gui('test','JumpCursors_cfg','FF',varargin{:});
+
+                % Initialize the experiment (calls initialise_func internally)
+                ok = WL.initialise(); 
+                
+                if ~ok
+                    wl_printf('error', 'Initialisation aborted!\n');
+                    return;
+                end
                 
                 % Configure the experiment for the participant
                 JumpCursors_cfg(WL, participantNumber);  % Pass participant number to the config function
                 
-                % Initialize the experiment (calls initialise_func internally)
-                ok = WL.initialise(); 
-                if ~ok
-                    wl_printf('error', 'Initialization aborted!\n');
-                    return;
-                end
-                
                 % Initialize robot and hardware
-                 % Configure robot based on settings
-
+                WL.Robot = WL.robot(WL.cfg.RobotName);  % Mouse Flag and Max Force processed automatically
                 WL.Hardware = wl_hardware(WL.Robot);    % Initialize hardware
-                ok = WL.Hardware.Start();               % Start hardware
-                
+                ok = WL.Hardware.Start();
+
                 % Start the main loop if hardware initialized successfully
                 if ok
                     WL.main_loop();  % Main experiment loop
                 end
 
-                % Stop hardware after experiment
+                % Stop hardware after the experiment
                 WL.Hardware.Stop();
-
+                
             catch msg
                 % Handle any errors and close the experiment
+                disp(['Error occurred: ', msg.message]);
                 WL.close(msg);
             end
         end
-        
-        % Initialization function (simplified)
-        function ok = wl_initialise(WL)
-            try
-                % For now, just indicate successful initialization
-                disp('Initializing configuration...');
-                ok = true;
-            catch err
-                % Handle initialization errors
-                disp('Error during initialization:');
-                disp(err.message);
-                ok = false;
-            end
-        end
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        function initialise_func(WL, varargin)
+        function  initialise_func(WL, varargin)
             WL.state_init('INITIALIZE','SETUP','HOME','START','DELAY','GO','MOVEWAIT',...
                 'MOVING','CURSORJUMP','POSTJUMP','FINISH','NEXT','INTERTRIAL','EXIT','TIMEOUT','ERROR','REST');
             WL.cfg.count=1;
@@ -102,6 +89,7 @@ classdef JumpCursors < wl_experiment
             WL.cfg.movementDuration = WL.Timer.MovementDurationTimer.GetTime();
             WL.cfg.fastTrialCount = 0;  % Counter for fast trials
             WL.cfg.slowTrialCount = 0;  % Counter for slow trials
+        
 
     
         end
@@ -388,7 +376,7 @@ classdef JumpCursors < wl_experiment
                             disp('FINISH to exit');
                             WL.state_next(WL.State.EXIT);
                         else
-                            [~, WL.var.data, names] = WL.Hardware.DataGet(); %get frame data
+                            [~, WL.var.data, ~] = WL.Hardware.DataGet(); %get frame data
                             WL.var.data=WL.var.data{1};
                             WL.var.data.TrialData = WL.TrialData(WL.TrialNumber,:);
                             if  rem(WL.TrialNumber,2)==1
@@ -510,7 +498,7 @@ classdef JumpCursors < wl_experiment
     else
         disp('No feedback provided for this trial.');
     end
-end
+ end
 
 function provide_feedback(WL)
     currentSpeedCue = WL.Trial.SpeedCue;
@@ -522,8 +510,6 @@ function provide_feedback(WL)
         targetDuration = WL.cfg.targetDurationFast;
     end
 
-    % Log the expected duration for debugging
-    disp(['Expected Duration: ', num2str(targetDuration), ' seconds with tolerance ', num2str(WL.cfg.tolerance)]);
 
     % Determine the feedback message based on the movement duration
     movementDuration = WL.cfg.movementDuration;
