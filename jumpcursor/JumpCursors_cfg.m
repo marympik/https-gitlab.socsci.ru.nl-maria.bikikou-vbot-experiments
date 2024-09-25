@@ -4,7 +4,7 @@ function JumpCursors_cfg(WL, participantNumber)
 
 
     WL.cfg.participantNumber = participantNumber;  
-    WL.cfg.save_file = fullfile('C:\Wolpert\Shared\matlab\WL_core\v2_1', sprintf('Participant_%d_Data.mat', participantNumber));
+    %WL.cfg.save_file = fullfile('C:\Wolpert\Shared\matlab\WL_core\v2_1', sprintf('Participant_%d_Data.mat', participantNumber));
 
     % Participant-specific logic for block order
     if mod(participantNumber, 2) == 1
@@ -30,6 +30,12 @@ function JumpCursors_cfg(WL, participantNumber)
         WL.cfg.vol = 0;
     end
     
+    % settings for the photodiode
+    WL.cfg.SensorayAddress = -1;
+    WL.cfg.SensorayAnalogChannels = 1:7; % 1-6 is force transducer, 7 is photodiode
+    WL.cfg.PhotoDiodePosition = [29.8, 16.8, 0];
+    WL.cfg.PhotoDiodeRadius = [2];
+    
     WL.cfg.Debug = 0;
     WL.cfg.CursorRadius = 0.5;
     WL.cfg.HomeRadius = 0.75;
@@ -53,6 +59,15 @@ function JumpCursors_cfg(WL, participantNumber)
     WL.cfg.VelocityThreshold = 1;
 
      WL.cfg.plot_timing = 0;
+
+       % Fast beeps (0.2 seconds interval)
+    WL.cfg.lowbeep   = WL.load_beeps([250 150],[0.5 0.5]);
+    WL.cfg.highbeep = WL.load_beeps([1000 0 1000 0 1000], [0.05 0.3 0.05 0.3 0.05]);
+    WL.cfg.fastfourthbeep = WL.load_beeps(1200, 0.05);  % 4th beep for fast trials
+
+    % Faster slow beeps (0.4 seconds interval instead of 0.5)
+    WL.cfg.slowbeep = WL.load_beeps([250 0 250 0 250], [0.2 0.5 0.2 0.5 0.2]);
+    WL.cfg.slowfourthbeep = WL.load_beeps(300, 0.2);  % 4th beep for slow trials
 
     WL.overide_cfg_defaults();
 
@@ -95,51 +110,41 @@ for k=1:length(Fields)
 end
 
 
-TargetAngle = {pi/2.0};
-% 
-WL.cfg.Fields = Fields;
-WL.cfg.TargetAngle = TargetAngle;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% JumpDistances.
+
+JumpDistanceCount = 13;
+RepetitionCount =1;
+JumpDistance = num2cell([WL.cfg.possibleJumpDistances]); %  Targets evenly spaced around a circle.
+MovementSpeed = num2cell([{'slow'},{'fast'}]);
+WL.cfg.JumpDistance = JumpDistance;
+WL.cfg.SpeedCue = MovementSpeed;
+
+SlowJumps.Trial.Index.JumpDistance = [ 1:JumpDistanceCount ];
+SlowJumps.Trial.Index.SpeedCue = [ones(1,JumpDistanceCount)];
+SlowJumps.Permute = true;
 
 
-    % Fast beeps (0.2 seconds interval)
-    WL.cfg.highbeep = WL.load_beeps([1000 0 1000 0 1000], [0.05 0.3 0.05 0.3 0.05]);
-    WL.cfg.fastfourthbeep = WL.load_beeps(1200, 0.05);  % 4th beep for fast trials
+FastJumps.Trial.Index.JumpDistance = [ 1:JumpDistanceCount ];
+FastJumps.Trial.Index.SpeedCue = [2*ones(1,JumpDistanceCount)];
+FastJumps.Permute = true;
 
-    % Faster slow beeps (0.4 seconds interval instead of 0.5)
-    WL.cfg.slowbeep = WL.load_beeps([250 0 250 0 250], [0.2 0.5 0.2 0.5 0.2]);
-    WL.cfg.slowfourthbeep = WL.load_beeps(300, 0.2);  % 4th beep for slow trials
+S = WL.parse_trials(SlowJumps);
+F = WL.parse_trials(FastJumps);
+    
+if mod(participantNumber, 2) == 1
+    T = parse_tree(RepetitionCount*S + RepetitionCount*F);
+else
+    T = parse_tree(RepetitionCount*F + RepetitionCount*S);
+end
+
+  
 
 
-    % Create blocks with fast and slow movements
-    jumps = WL.cfg.possibleJumpDistances;
-    nPerCondition = 20;  % Number of repetitions per condition
 
-    % Slow block
-    slowSpeeds = repmat({'slow'}, numel(jumps) * nPerCondition, 1);
-    slowJumps = repmat(jumps', nPerCondition, 1);
-
-    % Fast block
-    fastSpeeds = repmat({'fast'}, numel(jumps) * nPerCondition, 1);
-    fastJumps = repmat(jumps', nPerCondition, 1);
-
-    % Randomize within each block
-    slowIdx = randperm(numel(slowJumps));
-    fastIdx = randperm(numel(fastJumps));
-
-    slowBlock = table(slowJumps(slowIdx), slowSpeeds(slowIdx), 'VariableNames', {'JumpDistance', 'SpeedCue'});
-    fastBlock = table(fastJumps(fastIdx), fastSpeeds(fastIdx), 'VariableNames', {'JumpDistance', 'SpeedCue'});
-
-    % Alternate between participants: odd -> fast first, even -> slow first
-    if mod(participantNumber, 2) == 1
-        WL.TrialData = [fastBlock; slowBlock];  % Fast block first
-    else
-        WL.TrialData = [slowBlock; fastBlock];  % Slow block first
-    end
-
+  
+    WL.TrialData = T;
     % Add other necessary fields
-    WL.TrialData.ReturnFlag = zeros(height(WL.TrialData), 1);  
-    WL.TrialData.MovementReactionTime = nan(height(WL.TrialData), 1);
-    WL.TrialData.MovementDurationTime = nan(height(WL.TrialData), 1);
-
+    
     disp(['Total number of trials: ', num2str(height(WL.TrialData))]);
 end
