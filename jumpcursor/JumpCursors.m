@@ -22,9 +22,9 @@ classdef JumpCursors < wl_experiment
                 WL.Robot = WL.robot(WL.cfg.RobotName);  % Mouse Flag and Max Force processed automatically
 
                 % Set up S826 analog input and digital output channels.
-                % WL.Sensoray = wl_sensoray(WL.cfg.SensorayAddress); % Address should be -1 if used with a robot.
-                % ok = WL.Sensoray.AnalogInputSetup(WL.cfg.SensorayAnalogChannels);
-                WL.Hardware = wl_hardware(WL.Robot); % Initialize hardware, WL.Sensoray
+                 WL.Sensoray = wl_sensoray(WL.cfg.SensorayAddress); % Address should be -1 if used with a robot.
+                 ok = WL.Sensoray.AnalogInputSetup(WL.cfg.SensorayAnalogChannels);
+                WL.Hardware = wl_hardware(WL.Robot , WL.Sensoray); % Initialize hardware, WL.Sensoray
 
                 ok = WL.Hardware.Start();
 
@@ -52,7 +52,8 @@ classdef JumpCursors < wl_experiment
             WL.state_init('INITIALIZE','SETUP','HOME','START','DELAY','GO','MOVEWAIT',...
                 'MOVING','CURSORJUMP','POSTJUMP','FINISH','NEXT','INTERTRIAL','EXIT','TIMEOUT','ERROR','REST');
             WL.cfg.count=1;
-            WL.cfg.CursorPositionHistory=zeros(50,3);
+            WL.cfg.CursorPositionHistory = zeros(50, 3);
+
 
             % Randomly assign a jump distance to each trial from the predefined list
             possibleJumpDistances = WL.cfg.possibleJumpDistances;  % Use the possible jump distances from the config
@@ -82,7 +83,7 @@ classdef JumpCursors < wl_experiment
             WL.cfg.hasPlayedThreeBeeps = false;
             WL.cfg.targetDurationFast = 0.5;  % example value in seconds for fast movements
             WL.cfg.targetDurationSlow = 1.2;  % example value in seconds for slow movements
-            WL.cfg.tolerance = 0.2;  % tolerance in seconds
+            WL.cfg.tolerance = 0.3;  % tolerance in seconds
             WL.cfg.feedbackMessage = '';  % Initialize as empty
             WL.cfg.feedbackColor = [1 0 0];
             WL.Timer.MovementDurationTimer = wl_timer;  % Initialize the movement duration timer
@@ -165,8 +166,8 @@ classdef JumpCursors < wl_experiment
 
             if WL.cfg.TargetVisible
                 wl_draw_sphere(WL.cfg.TargetPosition + [0 0 -2]', WL.cfg.TargetRadius, [1 1 0], 'Alpha', 0.7);
-                % else
-                %     wl_draw_sphere(WL.Trial.TargetPosition + [0 0 -2]', WL.cfg.TargetRadius, 0.3*[1 1 1], 'Alpha', 0.7);
+                %  else
+                % wl_draw_sphere(WL.Trial.TargetPosition + [0 0 -2]', WL.cfg.TargetRadius, [1 1 0], 'Alpha', 0.7);
             end
 
             % Always draw the home position
@@ -188,7 +189,7 @@ classdef JumpCursors < wl_experiment
             end
 
             % define when to draw to activate the photodiode
-            if (WL.cfg.CursorVisible && WL.State.Current == WL.State.POSTJUMP)
+            if (WL.cfg.CursorVisible && WL.State.Current == WL.State.POSTJUMP )
                 wl_draw_circle(WL.cfg.PhotoDiodePosition', WL.cfg.PhotoDiodeRadius, 0, [1 1 1]);
             end
 
@@ -340,15 +341,20 @@ classdef JumpCursors < wl_experiment
                     ok = WL.Robot.RampDown();
                     finalPosition = WL.Robot.Position;  % Get final position
                     targetPosition = WL.Trial.TargetPosition;  % Get target position
-                    accuracy = sqrt(sum((finalPosition - targetPosition).^2));  % Euclidean distance
-                    WL.Trial.MovementAccuracy = accuracy;
+                    movementDuration = WL.Timer.MovementDurationTimer.GetTime(); 
+                    WL.Trial.MovementDuration(WL.TrialNumber) = movementDuration;
+                    % Calculate the Euclidean distance (accuracy)
+                    accuracy = sqrt(sum((finalPosition - targetPosition).^2));
+
+                    % Store the accuracy in the TrialData table
+                    WL.TrialData.Accuracy(WL.TrialNumber) = accuracy;
 
                     corrections = diff(WL.cfg.PositionLog, 1);  % Calculate changes in position
                     correctionMagnitude = sum(sqrt(sum(corrections.^2, 2)));  % Sum of corrections
                     WL.Trial.CorrectionMagnitude = correctionMagnitude;
-
-                    WL.TrialData.Accuracy(WL.TrialNumber) = WL.Trial.MovementAccuracy;
-                    WL.TrialData.CorrectionMagnitude(WL.TrialNumber) = WL.Trial.CorrectionMagnitude;
+        
+                    
+                    WL.CursorPositionHistory{WL.TrialNumber} = WL.cfg.CursorPositionHistory;
 
 
                     if WL.State.FirstFlag

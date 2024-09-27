@@ -4,7 +4,6 @@ assignin('base','MHF_FieldFuncPath','.\')
 
 
 WL.cfg.participantNumber = participantNumber;
-%WL.cfg.save_file = fullfile('C:\Wolpert\Shared\matlab\WL_core\v2_1', sprintf('Participant_%d_Data.mat', participantNumber));
 
 % Participant-specific logic for block order
 if mod(participantNumber, 2) == 1
@@ -49,10 +48,10 @@ WL.cfg.RestBreakSeconds = 45;
 WL.cfg.TrialDelay = 0;
 WL.cfg.FinishDelay = 0.1;
 WL.cfg.ErrorWait = 1.5;
-WL.cfg.TargetDistance = 20;
-WL.cfg.HomePosition = [0 -7 0]';
+WL.cfg.TargetDistance = 17;
+WL.cfg.HomePosition = [0 -10 0]';
 WL.cfg.TargetPosition = WL.cfg.HomePosition + [0 WL.cfg.TargetDistance 0]';
-WL.cfg.isPracticeTrial = true;
+WL.cfg.isPracticeTrial = false;
 
 % Define the possible jump distances in meters
 WL.cfg.possibleJumpDistances = [-6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6];
@@ -66,7 +65,7 @@ WL.cfg.highbeep = WL.load_beeps(1000, 0.05);
 WL.cfg.fastfourthbeep = WL.load_beeps(1200, 0.05);  % 4th beep for fast trials
 
 % Faster slow beeps (0.4 seconds interval instead of 0.5)
-WL.cfg.slowbeep = WL.load_beeps(250, 0.5);
+WL.cfg.slowbeep = WL.load_beeps(250, 0.3);
 WL.cfg.slowfourthbeep = WL.load_beeps(300, 0.2);  % 4th beep for slow trials
 
 WL.overide_cfg_defaults();
@@ -114,7 +113,7 @@ end
 % JumpDistances.
 
 JumpDistanceCount = 13;
-RepetitionCount = 20 ;
+RepetitionCount = 6 ;
 PracticeRepetitionCount = 13;
 JumpDistance = num2cell([WL.cfg.possibleJumpDistances]); %  Targets evenly spaced around a circle.
 MovementSpeed = num2cell([{'slow'},{'fast'}]);
@@ -155,6 +154,9 @@ end
 WL.TrialData = T;
 WL.TrialData.Accuracy = nan(height(WL.TrialData), 1);  % Placeholder for accuracy
 WL.TrialData.CorrectionMagnitude = nan(height(WL.TrialData), 1);
+WL.TrialData.CursorPositionHistory = cell(height(WL.TrialData), 1); 
+WL.TrialData.MovementDuration = nan(height(WL.TrialData), 1);  % Placeholder for movement duration
+
 
 
 disp(['Total number of trials: ', num2str(height(WL.TrialData))]);
