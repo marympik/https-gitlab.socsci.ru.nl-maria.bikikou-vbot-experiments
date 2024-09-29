@@ -152,10 +152,9 @@ else
 end
 
 WL.TrialData = T;
-WL.TrialData.Accuracy = nan(height(WL.TrialData), 1);  % Placeholder for accuracy
-WL.TrialData.CorrectionMagnitude = nan(height(WL.TrialData), 1);
-WL.TrialData.CursorPositionHistory = cell(height(WL.TrialData), 1); 
-WL.TrialData.MovementDuration = nan(height(WL.TrialData), 1);  % Placeholder for movement duration
+WL.Trial.Accuracy = nan(height(WL.TrialData), 1);  % Placeholder for accuracy
+WL.Trial.CorrectionMagnitude = nan(height(WL.TrialData), 1);
+WL.Trial.MovementDuration = nan(height(WL.TrialData), 1);  % Placeholder for movement duration
 
 
 

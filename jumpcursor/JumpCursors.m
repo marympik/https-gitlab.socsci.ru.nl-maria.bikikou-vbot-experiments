@@ -21,16 +21,12 @@ classdef JumpCursors < wl_experiment
                 % Initialize robot and hardware
                 WL.Robot = WL.robot(WL.cfg.RobotName);  % Mouse Flag and Max Force processed automatically
 
-                % Set up S826 analog input and digital output channels.
-                 WL.Sensoray = wl_sensoray(WL.cfg.SensorayAddress); % Address should be -1 if used with a robot.
-                 ok = WL.Sensoray.AnalogInputSetup(WL.cfg.SensorayAnalogChannels);
-                WL.Hardware = wl_hardware(WL.Robot , WL.Sensoray); % Initialize hardware, WL.Sensoray
+                % % Set up S826 analog input and digital output channels.
+                %  WL.Sensoray = wl_sensoray(WL.cfg.SensorayAddress); % Address should be -1 if used with a robot.
+                %  ok = WL.Sensoray.AnalogInputSetup(WL.cfg.SensorayAnalogChannels);
+                WL.Hardware = wl_hardware(WL.Robot); % Initialize hardware, WL.Sensoray
 
                 ok = WL.Hardware.Start();
-
-                % WL.cfg.showInstructions = true;
-                % 
-                % WL.cfg.showGoodLuck = false;
 
 
                 % Start the main loop if hardware initialized successfully
@@ -347,14 +343,14 @@ classdef JumpCursors < wl_experiment
                     accuracy = sqrt(sum((finalPosition - targetPosition).^2));
 
                     % Store the accuracy in the TrialData table
-                    WL.TrialData.Accuracy(WL.TrialNumber) = accuracy;
+                    WL.Trial.Accuracy(WL.TrialNumber) = accuracy;
 
                     corrections = diff(WL.cfg.PositionLog, 1);  % Calculate changes in position
                     correctionMagnitude = sum(sqrt(sum(corrections.^2, 2)));  % Sum of corrections
                     WL.Trial.CorrectionMagnitude = correctionMagnitude;
         
                     
-                    WL.CursorPositionHistory{WL.TrialNumber} = WL.cfg.CursorPositionHistory;
+                  
 
 
                     if WL.State.FirstFlag
