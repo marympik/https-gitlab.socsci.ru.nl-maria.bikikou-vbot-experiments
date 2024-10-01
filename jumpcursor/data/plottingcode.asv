@@ -28,7 +28,7 @@
 % end
 
 
-plot_velocity_over_time(wl, 24);
+plot_velocity_over_time(wl, 26);
 
 function plot_velocity_over_time(wl, trial_number)
 
@@ -40,25 +40,22 @@ function plot_velocity_over_time(wl, trial_number)
     dx = diff(squeeze(x));  % Difference in X positions
     dy = diff(squeeze(y));  % Difference in Y positions
 
-    dt = diff(nonzeros(wl.TimeStamp(trial_number,:)));
+    dt =
 
     % Calculate velocity magnitude
-    velocity = sqrt((dx./dt).^2 + (dy./dt).^2);  % Calculate velocity 
+    velocity = sqrt((dx./dt).^2 + (dy./dt).^2);  % Calculate velocity magnitude between each sample
 
     % Get the movement duration for this trial
     movement_duration = wl.WL.TrialData.MovementDurationTime(trial_number);  % Movement duration in seconds
 
-    time = nonzeros(wl.TimeStamp(trial_number,:));
+    % Number of samples for this trial
+    num_samples = length(velocity);  % One less than the number of positions due to diff
 
-    time= time(2:end); %calculate velocity from the 2nd point 
-    % % Number of samples for this trial
-    % num_samples = length(velocity);  % One less than the number of positions due to diff
-    % 
-    % % Calculate time per sample
-    % time_per_sample = movement_duration / num_samples;
-    % 
-    % % Create a time vector for plotting
-    % time = (1:num_samples) * time_per_sample;
+    % Calculate time per sample
+    time_per_sample = movement_duration / num_samples;
+
+    % Create a time vector for plotting
+    time = (1:num_samples) * time_per_sample;
 
     % Plot velocity over time
     figure;
@@ -69,6 +66,5 @@ function plot_velocity_over_time(wl, trial_number)
     grid on;
     
 end
-
 
 

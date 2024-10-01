@@ -348,9 +348,6 @@ classdef JumpCursors < wl_experiment
                     corrections = diff(WL.cfg.PositionLog, 1);  % Calculate changes in position
                     correctionMagnitude = sum(sqrt(sum(corrections.^2, 2)));  % Sum of corrections
                     WL.Trial.CorrectionMagnitude = correctionMagnitude;
-        
-                    
-                  
 
 
                     if WL.State.FirstFlag
