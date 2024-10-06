@@ -48,8 +48,8 @@ WL.cfg.RestBreakSeconds = 45;
 WL.cfg.TrialDelay = 0;
 WL.cfg.FinishDelay = 0.1;
 WL.cfg.ErrorWait = 1.5;
-WL.cfg.TargetDistance = 20;
-WL.cfg.HomePosition = [0 -7 0]';
+WL.cfg.TargetDistance = 2;
+WL.cfg.HomePosition = [0 -10 0]';
 WL.cfg.TargetPosition = WL.cfg.HomePosition + [0 WL.cfg.TargetDistance 0]';
 WL.cfg.isPracticeTrial = false;
 
