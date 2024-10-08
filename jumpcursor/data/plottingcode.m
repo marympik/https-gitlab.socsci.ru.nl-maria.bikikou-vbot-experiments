@@ -2,10 +2,10 @@
 wl = load('data\pilot02.mat');
 
 
+
+% plot_single_trial_trajectory(wl, 78);  % Change 2 to any valid trial number
 % 
-% plot_single_trial_trajectory(wl, 90);  % Change 2 to any valid trial number
-% 
-% % Function to plot a single trial's trajectory
+% %Function to plot a single trial's trajectory
 % function plot_single_trial_trajectory(wl, trial_number)
 %     % Check if trial_number is valid
 %     if trial_number < 1 || trial_number > size(wl.RobotPosition, 1)
@@ -54,7 +54,7 @@ wl = load('data\pilot02.mat');
 % end
 
 % 
-% plot_velocity_over_time(wl, 24);
+% plot_velocity_over_time(wl, 1);
 % 
 % function plot_velocity_over_time(wl, trial_number)
 % 
@@ -95,8 +95,8 @@ wl = load('data\pilot02.mat');
 %     grid on;
 % 
 % end
-% 
-% 
+
+
 
 % % Call the function to plot a single trajectory
 % plot_correction_magnitude(wl, 17);
@@ -148,6 +148,91 @@ wl = load('data\pilot02.mat');
 %     title(['Correction Magnitude for Trial ', num2str(trial_number)]);
 %     grid on;
 % end
+
+% plot_lateral_deviation_by_condition(wl);
+% 
+% % Function to plot lateral deviation for both fast and slow conditions
+% function plot_lateral_deviation_by_condition(wl)
+%     % Define the sampling rate (adjust based on your experiment)
+%     sampling_rate = 1000;  % For example, 1000 Hz = 1 sample per millisecond
+% 
+%     % Extract trials for fast and slow conditions based on SpeedCue
+%     fast_trials = find(strcmp(wl.WL.TrialData.SpeedCue, 'fast'));
+%     slow_trials = find(strcmp(wl.WL.TrialData.SpeedCue, 'slow'));
+% 
+%     % Initialize storage for lateral deviations
+%     max_samples = 0;
+%     fast_deviations = [];
+%     slow_deviations = [];
+% 
+%     % Loop through fast trials and pad deviations to match the longest trial
+%     for trial_number = fast_trials'
+%         lateral_deviation = calculate_lateral_deviation(wl, trial_number);
+%         max_samples = max(max_samples, length(lateral_deviation));
+%         fast_deviations = [fast_deviations; padarray(lateral_deviation, [0, max_samples - length(lateral_deviation)], NaN, 'post')];
+%     end
+% 
+%     % Loop through slow trials and pad deviations to match the longest trial
+%     for trial_number = slow_trials'
+%         lateral_deviation = calculate_lateral_deviation(wl, trial_number);
+%         max_samples = max(max_samples, length(lateral_deviation));
+%         slow_deviations = [slow_deviations; padarray(lateral_deviation, [0, max_samples - length(lateral_deviation)], NaN, 'post')];
+%     end
+% 
+%     % Convert samples to time (seconds)
+%     time_in_seconds = (1:max_samples) / sampling_rate;
+% 
+%     % Plot average lateral deviation for fast and slow conditions
+%     figure;
+%     plot(time_in_seconds, nanmean(fast_deviations, 1), 'LineWidth', 2, 'DisplayName', 'Fast Condition');
+%     hold on;
+%     plot(time_in_seconds, nanmean(slow_deviations, 1), 'LineWidth', 2, 'DisplayName', 'Slow Condition', 'LineStyle', '--');
+% 
+%     % Customize plot
+%     xlabel('Time (seconds)');
+%     ylabel('Lateral Deviation (cm)');
+%     title('Average Lateral Deviation: Fast vs Slow Conditions');
+%     legend('show');
+%     grid on;
+%     hold off;
+% end
+% 
+% % Function to calculate lateral deviation for a single trial
+% function lateral_deviation = calculate_lateral_deviation(wl, trial_number)
+%     % Initialize the ideal trajectory (from start to target)
+%     start_pos = wl.RobotPosition(trial_number, 1:2, 1);  % Starting position (x, y)
+%     target_pos = wl.WL.TrialData.TargetPosition(trial_number, 1:2);  % Target position (x, y)
+% 
+%     % Compute the direction of the ideal path (straight line from start to target)
+%     ideal_vector = target_pos - start_pos;
+% 
+%     % Normalize the ideal vector to get the unit vector
+%     ideal_unit_vector = ideal_vector / norm(ideal_vector);
+% 
+%     % Initialize lateral deviation array
+%     lateral_deviation = [];
+% 
+%     % Loop through all the samples (time points) of the trial
+%     for i = 1:wl.Samples(trial_number)
+%         % Current position of the robot/cursor
+%         current_pos = wl.RobotPosition(trial_number, 1:2, i);
+% 
+%         % Vector from start to the current position
+%         current_vector = current_pos - start_pos;
+% 
+%         % Project current vector onto the ideal unit vector
+%         projection_length = dot(current_vector, ideal_unit_vector);
+%         projection_point = start_pos + projection_length * ideal_unit_vector;
+% 
+%         % Calculate lateral deviation (distance from current position to the ideal line)
+%         deviation = norm(current_pos - projection_point);
+% 
+%         % Store the deviation for plotting
+%         lateral_deviation(end+1) = deviation;
+%     end
+% end
+
+
 
 % analyze_corrections_by_jump_size(wl);
 % 
@@ -202,7 +287,7 @@ wl = load('data\pilot02.mat');
 
 
 % 
-% plot_robot_velocity_magnitude(wl, 24);  % Change 80 to any valid trial number
+% plot_robot_velocity_magnitude(wl, 23);  % Change 80 to any valid trial number
 % 
 % % Function to plot the velocity magnitude (speed) for a single trial
 % function plot_robot_velocity_magnitude(wl, trial_number)
@@ -218,6 +303,7 @@ wl = load('data\pilot02.mat');
 %     % Calculate the velocity magnitude (speed)
 %     speed = sqrt(vx.^2 + vy.^2);
 % 
+% 
 %     % Extract the time stamps corresponding to the trial
 %     time = wl.TimeStamp(trial_number, 1:wl.Samples(trial_number));
 % 
@@ -230,7 +316,7 @@ wl = load('data\pilot02.mat');
 %     grid on;
 % end
 
-calculate_movement_duration(wl,103);
+calculate_movement_duration(wl,1);
 
 % Function to calculate and optionally plot movement duration
 function movement_duration = calculate_movement_duration(wl, trial_number)
@@ -242,10 +328,10 @@ function movement_duration = calculate_movement_duration(wl, trial_number)
     % Extract X and Y components of the robot velocity during the trial
     vx = squeeze(wl.RobotVelocity(trial_number, 1, 1:wl.Samples(trial_number)));
     vy = squeeze(wl.RobotVelocity(trial_number, 2, 1:wl.Samples(trial_number)));
-    
+
     % Calculate the velocity magnitude (speed)
     speed = sqrt(vx.^2 + vy.^2);
-    
+
     % Extract the time stamps corresponding to the trial
     time = wl.TimeStamp(trial_number, 1:wl.Samples(trial_number));
 
@@ -253,16 +339,16 @@ function movement_duration = calculate_movement_duration(wl, trial_number)
     speed_threshold = 0.1;  % Adjust based on noise level
     movement_start_idx = find(speed > speed_threshold, 1, 'first');
     movement_end_idx = find(speed > speed_threshold, 1, 'last');
-    
+
     % Calculate movement duration
     movement_duration = time(movement_end_idx) - time(movement_start_idx);
-    
+
     % Optionally, print the movement duration
     disp(['Movement duration for Trial ', num2str(trial_number), ': ', num2str(movement_duration), ' ms']);
-    
+
     % Plot the velocity and indicate movement start and end points
     figure;
-    plot(time, speed, 'LineWidth', 2);
+    plot(time, vy, 'LineWidth', 2);
     hold on;
     xline(time(movement_start_idx), 'r--', 'DisplayName', 'Start of Movement');
     xline(time(movement_end_idx), 'g--', 'DisplayName', 'End of Movement');
@@ -274,4 +360,252 @@ function movement_duration = calculate_movement_duration(wl, trial_number)
     hold off;
 end
 
+ % Plotting the results
 
+%     Plot the correction speeds
+%     figure;
+%     hold on;
+%     scatter(1:length(correction_speed_fast), correction_speed_fast, 'b', 'DisplayName', 'Fast Condition');
+%     scatter(1:length(correction_speed_slow), correction_speed_slow, 'r', 'DisplayName', 'Slow Condition');
+%     hold off;
+%     xlabel('Trial Number');
+%     ylabel('Correction Speed (cm/s)');
+%     legend;
+%     title('Comparison of Correction Speed: Fast vs Slow Conditions');
+% end
+%  plot_correction_vs_jump_size(wl);
+% function plot_correction_vs_jump_size(wl)
+%     % Extract trials and jump sizes
+%     trials = wl.WL.TrialData;  % Access the trial data
+%     fast_trials = find(strcmp(trials.SpeedCue, 'fast'));
+%     slow_trials = find(strcmp(trials.SpeedCue, 'slow'));
+% 
+%     % Initialize storage for corrections and jump sizes
+%     fast_jump_sizes = [];
+%     fast_corrections = [];
+%     slow_jump_sizes = [];
+%     slow_corrections = [];
+% 
+%     % Compute corrective responses for fast trials
+%     for trial_number = fast_trials'
+%         [lateral_deviation, jump_size] = calculate_correction_by_jump_size(wl, trial_number);
+%         fast_jump_sizes = [fast_jump_sizes, jump_size];  % Collect jump sizes
+%         fast_corrections = [fast_corrections, lateral_deviation];  % Collect corrections
+%     end
+% 
+%     % Compute corrective responses for slow trials
+%     for trial_number = slow_trials'
+%         [lateral_deviation, jump_size] = calculate_correction_by_jump_size(wl, trial_number);
+%         slow_jump_sizes = [slow_jump_sizes, jump_size];  % Collect jump sizes
+%         slow_corrections = [slow_corrections, lateral_deviation];  % Collect corrections
+%     end
+% 
+%     % Plot the results
+%     figure;
+%     scatter(fast_jump_sizes, fast_corrections, 'b', 'DisplayName', 'Fast Condition');
+%     hold on;
+%     scatter(slow_jump_sizes, slow_corrections, 'r', 'DisplayName', 'Slow Condition');
+%     xlabel('Jump Size (cm)');
+%     ylabel('Correction Magnitude (cm)');
+%     title('Corrective Responses vs Jump Sizes');
+%     legend('show');
+%     grid on;
+%     hold off;
+% end
+% 
+% % Function to calculate lateral deviation and jump size for a single trial
+% function [lateral_deviation, jump_size] = calculate_correction_by_jump_size(wl, trial_number)
+%     % Get the starting and target positions
+%     start_pos = wl.RobotPosition(trial_number, 1:2, 1);
+%     target_pos = wl.WL.TrialData.TargetPosition(trial_number, 1:2);  % Correct reference to TargetPosition
+% 
+%     % Compute the ideal vector
+%     ideal_vector = target_pos - start_pos;
+%     ideal_unit_vector = ideal_vector / norm(ideal_vector);
+% 
+%     % Get jump size from trial data
+%     jump_size = wl.WL.TrialData.JumpDistance(trial_number);  % Correct reference to JumpDistance
+% 
+%     % Initialize lateral deviation
+%     lateral_deviation = 0;
+% 
+%     % Loop through all the samples (time points)
+%     for i = 1:wl.Samples(trial_number)
+%         current_pos = wl.RobotPosition(trial_number, 1:2, i);
+%         current_vector = current_pos - start_pos;
+%         projection_length = dot(current_vector, ideal_unit_vector);
+%         projection_point = start_pos + projection_length * ideal_unit_vector;
+%         deviation = norm(current_pos - projection_point);
+%         lateral_deviation = lateral_deviation + deviation;
+%     end
+% 
+%     % Normalize lateral deviation by the number of samples
+%     lateral_deviation = lateral_deviation / wl.Samples(trial_number);
+% end
+% plot_correction_over_time(wl);
+% function plot_correction_over_time(wl)
+%     % Extract trials and their correction magnitudes
+%     trials = wl.WL.TrialData;
+% 
+%     % Initialize storage for correction magnitudes over time
+%     trial_numbers = 1:height(trials);  % Assuming trials are ordered sequentially
+%     correction_magnitudes = nan(1, height(trials));  % Pre-allocate array
+% 
+%     % Collect correction magnitudes for each trial
+%     for trial_number = 1:height(trials)
+%         correction_magnitudes(trial_number) = calculate_correction_magnitude(wl, trial_number);
+%     end
+% 
+%     % Plot the correction magnitudes over time
+%     figure;
+%     plot(trial_numbers, correction_magnitudes, '-o');
+%     xlabel('Trial Number');
+%     ylabel('Correction Magnitude (cm)');
+%     title('Correction Magnitude Over Time');
+%     grid on;
+% end
+% 
+% % Function to calculate correction magnitude for a single trial
+% function correction_magnitude = calculate_correction_magnitude(wl, trial_number)
+%     % Get the starting and target positions
+%     start_pos = wl.RobotPosition(trial_number, 1:2, 1);
+%     target_pos = wl.WL.TrialData.TargetPosition(trial_number, 1:2);  % Correct reference to TargetPosition
+% 
+%     % Compute the ideal vector
+%     ideal_vector = target_pos - start_pos;
+%     ideal_unit_vector = ideal_vector / norm(ideal_vector);
+% 
+%     % Initialize correction magnitude
+%     correction_magnitude = 0;
+% 
+%     % Loop through all the samples (time points) and compute deviations
+%     for i = 1:wl.Samples(trial_number)
+%         current_pos = wl.RobotPosition(trial_number, 1:2, i);
+%         current_vector = current_pos - start_pos;
+%         projection_length = dot(current_vector, ideal_unit_vector);
+%         projection_point = start_pos + projection_length * ideal_unit_vector;
+%         deviation = norm(current_pos - projection_point);
+%         correction_magnitude = correction_magnitude + deviation;
+%     end
+% 
+%     % Normalize correction magnitude by the number of samples
+%     correction_magnitude = correction_magnitude / wl.Samples(trial_number);
+% end
+% function compare_correction_before_after(wl)
+%     trials = wl.WL.TrialData;  % Access the trial data
+% 
+%     before_perturbation_corrections = [];
+%     after_perturbation_corrections = [];
+% 
+%     for trial_number = 1:height(trials)
+%         % Calculate the correction magnitude before perturbation
+%         before_correction = calculate_correction_before(wl, trial_number);
+%         before_perturbation_corrections = [before_perturbation_corrections, before_correction];
+% 
+%         % Calculate the correction magnitude after perturbation
+%         after_correction = calculate_correction_after(wl, trial_number);
+%         after_perturbation_corrections = [after_perturbation_corrections, after_correction];
+%     end
+% 
+%     % Plot the comparison
+%     figure;
+%     hold on;
+%     scatter(1:length(before_perturbation_corrections), before_perturbation_corrections, 'b', 'DisplayName', 'Before Perturbation');
+%     scatter(1:length(after_perturbation_corrections), after_perturbation_corrections, 'r', 'DisplayName', 'After Perturbation');
+%     xlabel('Trial Number');
+%     ylabel('Correction Magnitude (cm)');
+%     title('Correction Before vs After Perturbation');
+%     legend('show');
+%     grid on;
+%     hold off;
+% end
+%  compare_avg_correction_before_after(wl);
+%  calculate_correction_before_after(wl, trial_number);
+% calculate_correction(wl, trial_number, start_sample, end_sample);
+% function compare_avg_correction_before_after(wl)
+%     trials = wl.WL.TrialData;  % Access the trial data
+% 
+%     % Initialize storage for corrections before and after perturbation
+%     corrections_before = [];
+%     corrections_after = [];
+% 
+%     % Loop through all trials and calculate corrections before and after perturbation
+%     for trial_number = 1:height(trials)
+%         [correction_before, correction_after] = calculate_correction_before_after(wl, trial_number);
+%         corrections_before = [corrections_before, correction_before];  % Collect corrections before
+%         corrections_after = [corrections_after, correction_after];  % Collect corrections after
+%     end
+% 
+%     % Calculate average corrections
+%     avg_correction_before = mean(corrections_before);
+%     avg_correction_after = mean(corrections_after);
+% 
+%     % Create a bar plot
+%     figure;
+%     bar([avg_correction_before, avg_correction_after]);
+%     set(gca, 'XTickLabel', {'Before Perturbation', 'After Perturbation'});
+%     ylabel('Average Correction Magnitude (cm)');
+%     title('Comparison of Average Correction Magnitudes Before and After Perturbation');
+%     grid on;
+% end
+% 
+% % Function to calculate corrections before and after perturbation for a single trial
+% function [correction_before, correction_after] = calculate_correction_before_after(wl, trial_number)
+%     % Example: Assuming the perturbation happens at sample 30, you can modify this logic
+%     perturbation_sample = 30;  % This is an example, you can adjust based on your data
+%     total_samples = wl.Samples(trial_number);  % Total number of samples for the trial
+% 
+%     % Compute correction magnitude before perturbation (from start to sample 30)
+%     correction_before = calculate_correction(wl, trial_number, 1, perturbation_sample);
+% 
+%     % Compute correction magnitude after perturbation (from sample 30 to the end)
+%     correction_after = calculate_correction(wl, trial_number, perturbation_sample+1, total_samples);
+% end
+% 
+% % Function to calculate correction magnitude for a specific range of samples
+% function correction_magnitude = calculate_correction(wl, trial_number, start_sample, end_sample)
+%     start_pos = wl.RobotPosition(trial_number, 1:2, 1);
+%     target_pos = wl.WL.TrialData.TargetPosition(trial_number, 1:2);
+% 
+%     % Compute the ideal vector and unit vector
+%     ideal_vector = target_pos - start_pos;
+%     ideal_unit_vector = ideal_vector / norm(ideal_vector);
+% 
+%     % Initialize correction magnitude
+%     correction_magnitude = 0;
+% 
+%     % Loop through the specified range of samples
+%     for i = start_sample:end_sample
+%         current_pos = wl.RobotPosition(trial_number, 1:2, i);
+%         current_vector = current_pos - start_pos;
+%         projection_length = dot(current_vector, ideal_unit_vector);
+%         projection_point = start_pos + projection_length * ideal_unit_vector;
+%         deviation = norm(current_pos - projection_point);
+%         correction_magnitude = correction_magnitude + deviation;
+%     end
+% 
+%     % Normalize by the number of samples in the range
+%     correction_magnitude = correction_magnitude / (end_sample - start_sample + 1);
+% end
+% % Get the trial durations for fast and slow trials
+% fast_durations = wl.WL.TrialData.MovementDurationTime(fast_trials);
+% slow_durations = wl.WL.TrialData.MovementDurationTime(slow_trials);
+% 
+% % Create a time vector for fast and slow trials
+% time_fast = 1:length(fast_durations);
+% time_slow = 1:length(slow_durations);
+% 
+% % Plot line for fast and slow durations
+% figure;
+% plot(time_fast, fast_durations, '-o', 'DisplayName', 'Fast Trials');
+% hold on;
+% plot(time_slow, slow_durations, '-x', 'DisplayName', 'Slow Trials');
+% hold off;
+% 
+% % Add labels and title
+% xlabel('Trial Number');
+% ylabel('Duration (s)');
+% title('Trial Durations Over Time for Fast and Slow Conditions');
+% legend('show');
+% grid on;
+ 
