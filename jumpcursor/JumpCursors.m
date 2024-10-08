@@ -222,7 +222,7 @@ classdef JumpCursors < wl_experiment
                 case WL.State.SETUP % Setup details of next trial, but only when robot stationary and active.
                     if all(WL.Robot.Active)
                         WL.cfg.shown = false;
-                        WL.cfg.CursorVisible = false;
+                        WL.cfg.CursorVisible = true;
                         WL.cfg.PositionLog = [];
                         WL.cfg.hasPlayedFourthBeep = false;
                         WL.trial_setup();
@@ -292,8 +292,8 @@ classdef JumpCursors < wl_experiment
                         % Regular behavior for experimental trials
                     end
                     WL.cfg.hasPlayedFourthBeep = false;
-                    if reaches_jump_point(WL) && ~WL.cfg.hasJumped % Check if it's time to jump
-                        %disp('Transitioning to CURSORJUMP');
+                     if reaches_jump_point(WL) && ~WL.cfg.hasJumped % Check if it's time to jump
+                        disp('Transitioning to CURSORJUMP');
                         WL.state_next(WL.State.CURSORJUMP);
                     end
                 case WL.State.CURSORJUMP
@@ -337,13 +337,13 @@ classdef JumpCursors < wl_experiment
                     ok = WL.Robot.RampDown();
                     finalPosition = WL.Robot.Position;  % Get final position
                     targetPosition = WL.Trial.TargetPosition;  % Get target position
-                    movementDuration = WL.Timer.MovementDurationTimer.GetTime(); 
-                    WL.Trial.MovementDuration(WL.TrialNumber) = movementDuration;
-                    % Calculate the Euclidean distance (accuracy)
-                    accuracy = sqrt(sum((finalPosition - targetPosition).^2));
+                    movementDuration = WL.Timer.MovementDurationTimer.GetTime();           
+                    WL.Trial.MovementDurationTime = movementDuration;
+
+
 
                     % Store the accuracy in the TrialData table
-                    WL.Trial.Accuracy(WL.TrialNumber) = accuracy;
+                    % WL.Trial.Accuracy(WL.TrialNumber) = accuracy;
 
                     corrections = diff(WL.cfg.PositionLog, 1);  % Calculate changes in position
                     correctionMagnitude = sum(sqrt(sum(corrections.^2, 2)));  % Sum of corrections
@@ -494,7 +494,7 @@ classdef JumpCursors < wl_experiment
 
         function flag = reaches_jump_point(WL)
             % Define the fixed distance for the jump
-            fixed_distance = 4;
+            fixed_distance = 6;
 
             % Calculate the y-axis distance from the cursor's position to the home position
             current_distance_y = WL.cfg.CursorPosition(2) - WL.cfg.HomePosition(2);

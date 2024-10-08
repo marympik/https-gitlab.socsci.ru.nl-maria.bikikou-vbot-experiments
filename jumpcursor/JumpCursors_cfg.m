@@ -113,7 +113,7 @@ end
 % JumpDistances.
 
 JumpDistanceCount = 13;
-RepetitionCount = 6 ;
+RepetitionCount = 1 ;
 PracticeRepetitionCount = 13;
 JumpDistance = num2cell([WL.cfg.possibleJumpDistances]); %  Targets evenly spaced around a circle.
 MovementSpeed = num2cell([{'slow'},{'fast'}]);
@@ -154,7 +154,7 @@ end
 WL.TrialData = T;
 WL.Trial.Accuracy = nan(height(WL.TrialData), 1);  % Placeholder for accuracy
 WL.Trial.CorrectionMagnitude = nan(height(WL.TrialData), 1);
-WL.Trial.MovementDuration = nan(height(WL.TrialData), 1);  % Placeholder for movement duration
+WL.Trial.MovementDurationTime = nan(height(WL.TrialData), 1);
 
 
 disp(['Total number of trials: ', num2str(height(WL.TrialData))]);
