@@ -1,9 +1,6 @@
 % Load the data
-wl = load('data\pilot02.mat');
-
-
-
-% plot_single_trial_trajectory(wl, 78);  % Change 2 to any valid trial number
+ wl = load('pilot02.mat');
+% plot_single_trial_trajectory(wl, 25);  % Change 2 to any valid trial number
 % 
 % %Function to plot a single trial's trajectory
 % function plot_single_trial_trajectory(wl, trial_number)
@@ -19,6 +16,7 @@ wl = load('data\pilot02.mat');
 %     % Get start and target positions from the wl.WL.cfg structure
 %     start_pos = wl.WL.cfg.HomePosition(1:2);  % Extracting the (x, y) home position
 %     target_pos = wl.WL.cfg.TargetPosition(1:2);  % Extracting the (x, y) target position
+%     jump_distance = wl.TrialData.JumpDistance(trial_number);
 % 
 %     % Create a new figure for the plot
 %     figure;
@@ -45,7 +43,8 @@ wl = load('data\pilot02.mat');
 %     legend('Location', 'Best');
 % 
 %     % Set title to indicate which trial is being plotted
-%     title(['Trajectory for Trial ', num2str(trial_number)]);
+%     title(['Trajectory for Trial ', num2str(trial_number), ' - Jump Distance: ', num2str(jump_distance), ' cm']);
+% 
 % 
 %     % Grid for better visualization
 %     grid on;
@@ -309,70 +308,71 @@ wl = load('data\pilot02.mat');
 % 
 %     % Plot the velocity magnitude (speed) over time
 %     figure;
-%     plot(time, speed, 'LineWidth', 2);
+%     plot(time, speed, 'LineWidth', 3);
 %     xlabel('Time (ms)');
 %     ylabel('Speed (cm/s)');
 %     title(['Robot Velocity Magnitude (Speed) for Trial ', num2str(trial_number)]);
 %     grid on;
 % end
+calculate_movement_duration(wl, 5)
+function movement_duration = calculate_movement_duration(wl, trial_number)
+    % Check if trial_number is valid
+    if trial_number < 1 || trial_number > size(wl.RobotPosition, 1)
+        error('Invalid trial number');
+    end
 
-% calculate_movement_duration(wl,1);
-% 
-% % Function to calculate and optionally plot movement duration
-% function movement_duration = calculate_movement_duration(wl, trial_number)
-%     % Check if trial_number is valid
-%     if trial_number < 1 || trial_number > size(wl.RobotVelocity, 1)
-%         error('Invalid trial number');
-%     end
-% 
-%     % Extract X and Y components of the robot velocity during the trial
-%     vx = squeeze(wl.RobotVelocity(trial_number, 1, 1:wl.Samples(trial_number)));
-%     vy = squeeze(wl.RobotVelocity(trial_number, 2, 1:wl.Samples(trial_number)));
-% 
-%     % Calculate the velocity magnitude (speed)
-%     speed = sqrt(vx.^2 + vy.^2);
-% 
-%     % Extract the time stamps corresponding to the trial
-%     time = wl.TimeStamp(trial_number, 1:wl.Samples(trial_number));
-% 
-%     % Find when the speed exceeds a small threshold (to avoid noise)
-%     speed_threshold = 0.1;  % Adjust based on noise level
-%     movement_start_idx = find(speed > speed_threshold, 1, 'first');
-%     movement_end_idx = find(speed > speed_threshold, 1, 'last');
-% 
-%     % Calculate movement duration
-%     movement_duration = time(movement_end_idx) - time(movement_start_idx);
-% 
-%     % Optionally, print the movement duration
-%     disp(['Movement duration for Trial ', num2str(trial_number), ': ', num2str(movement_duration), ' ms']);
-% 
-%     % Plot the velocity and indicate movement start and end points
-%     figure;
-%     plot(time, vy, 'LineWidth', 2);
-%     hold on;
-%     xline(time(movement_start_idx), 'r--', 'DisplayName', 'Start of Movement');
-%     xline(time(movement_end_idx), 'g--', 'DisplayName', 'End of Movement');
-%     xlabel('Time (ms)');
-%     ylabel('Speed (cm/s)');
-%     title(['Robot Velocity Magnitude (Speed) for Trial ', num2str(trial_number)]);
-%     legend('show');
-%     grid on;
-%     hold off;
-% end
+    % Extract X and Y positions and velocities of the robot during the trial
+    x = squeeze(wl.RobotPosition(trial_number, 1, 1:wl.Samples(trial_number)));
+    y = squeeze(wl.RobotPosition(trial_number, 2, 1:wl.Samples(trial_number)));
+    vx = squeeze(wl.RobotVelocity(trial_number, 1, 1:wl.Samples(trial_number)));
+    vy = squeeze(wl.RobotVelocity(trial_number, 2, 1:wl.Samples(trial_number)));
 
- % Plotting the results
+    % Calculate the velocity magnitude (speed)
+    speed = sqrt(vx.^2 + vy.^2);
 
-%     Plot the correction speeds
-%     figure;
-%     hold on;
-%     scatter(1:length(correction_speed_fast), correction_speed_fast, 'b', 'DisplayName', 'Fast Condition');
-%     scatter(1:length(correction_speed_slow), correction_speed_slow, 'r', 'DisplayName', 'Slow Condition');
-%     hold off;
-%     xlabel('Trial Number');
-%     ylabel('Correction Speed (cm/s)');
-%     legend;
-%     title('Comparison of Correction Speed: Fast vs Slow Conditions');
-% end
+    % Extract the time stamps corresponding to the trial
+    time = wl.TimeStamp(trial_number, 1:wl.Samples(trial_number));
+
+    % Find when the speed exceeds a small threshold (to avoid noise)
+    speed_threshold = 0.1;  % Adjust based on noise level in your data
+    movement_start_idx = find(speed > speed_threshold, 1, 'first');
+
+    % Define the target position
+    target_pos = wl.WL.cfg.TargetPosition(1:2);  % Extracting the (x, y) target position
+
+    % Calculate the Euclidean distance to the target at each sample
+    distance_to_target = sqrt((x - target_pos(1)).^2 + (y - target_pos(2)).^2);
+
+    %Set a small distance threshold to consider the movement "finished"
+    position_threshold = 0.5;  % Adjust this based on precision needed (in cm)
+
+    % Find the index where the distance to the target is less than the threshold
+    movement_end_idx = find(distance_to_target < position_threshold, 1, 'first');
+
+    if isempty(movement_end_idx)
+        movement_end_idx = length(time);  % In case no exact proximity is reached
+    end
+
+    % Calculate movement duration
+    movement_duration = time(movement_end_idx) - time(movement_start_idx);
+
+    % Print the movement duration
+    disp(['Movement duration for Trial ', num2str(trial_number), ': ', num2str(movement_duration), ' ms']);
+
+    figure;
+    plot(time, speed, 'LineWidth', 2, 'DisplayName', 'Speed');
+    hold on;
+    xline(time(movement_start_idx), 'r--', 'DisplayName', 'Start of Movement');
+    xline(time(movement_end_idx), 'g--', 'DisplayName', 'End of Movement');
+
+    % Add labels, title, and legend
+    xlabel('Time (ms)');
+    ylabel('Speed (cm/s)');
+    title(['Robot Velocity Magnitude (Speed) for Trial ', num2str(trial_number)]);
+    legend('show');
+    grid on;
+    hold off;
+end
 %  plot_correction_vs_jump_size(wl);
 % function plot_correction_vs_jump_size(wl)
 %     % Extract trials and jump sizes
