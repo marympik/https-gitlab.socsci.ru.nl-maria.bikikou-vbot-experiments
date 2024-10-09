@@ -1,57 +1,61 @@
 % Load the data
-wl = load('data\pilot02.mat');
+wl = load('experimentmaria1.mat');
 
+plot_single_trial_trajectory(wl, 1);  % Change 2 to any valid trial number
 
+%Function to plot a single trial's trajectory
+function plot_single_trial_trajectory(wl, trial_number)
+    % Check if trial_number is valid
+    if trial_number < 1 || trial_number > size(wl.RobotPosition, 1)
+        error('Invalid trial number');
+    end
 
-% plot_single_trial_trajectory(wl, 78);  % Change 2 to any valid trial number
-% 
-% %Function to plot a single trial's trajectory
-% function plot_single_trial_trajectory(wl, trial_number)
-%     % Check if trial_number is valid
-%     if trial_number < 1 || trial_number > size(wl.RobotPosition, 1)
-%         error('Invalid trial number');
-%     end
-% 
-%     % Extract X and Y positions of the robot during the trial
-%     x = squeeze(wl.RobotPosition(trial_number, 1, 1:wl.Samples(trial_number)));
-%     y = squeeze(wl.RobotPosition(trial_number, 2, 1:wl.Samples(trial_number)));
-% 
-%     % Get start and target positions from the wl.WL.cfg structure
-%     start_pos = wl.WL.cfg.HomePosition(1:2);  % Extracting the (x, y) home position
-%     target_pos = wl.WL.cfg.TargetPosition(1:2);  % Extracting the (x, y) target position
-% 
-%     % Create a new figure for the plot
-%     figure;
-% 
-%     % Plot the trajectory
-%     plot(x, y, 'LineWidth', 2, 'DisplayName', 'Trajectory');
-%     hold on;
-% 
-%     % Plot the starting position (Home)
-%     plot(start_pos(1), start_pos(2), 'ro', 'MarkerSize', 10, 'LineWidth', 2, 'DisplayName', 'Start Position');
-% 
-%     % Plot the target position
-%     plot(target_pos(1), target_pos(2), 'gx', 'MarkerSize', 10, 'LineWidth', 2, 'DisplayName', 'Target Position');
-% 
-%     % Set the axis limits based on the configuration
-%     xlim([-10 10]);  % You can adjust this as needed
-%     ylim([-10 25]);  % Adjust this to suit your experiment's target distance
-% 
-%     % Add axis labels with units
-%     xlabel('X Position (cm)');
-%     ylabel('Y Position (cm)');
-% 
-%     % Add a legend to the plot
-%     legend('Location', 'Best');
-% 
-%     % Set title to indicate which trial is being plotted
-%     title(['Trajectory for Trial ', num2str(trial_number)]);
-% 
-%     % Grid for better visualization
-%     grid on;
-% 
-%     hold off;
-% end
+    % Extract X and Y positions of the robot during the trial
+    x = squeeze(wl.RobotPosition(trial_number, 1, 1:wl.Samples(trial_number)));
+    y = squeeze(wl.RobotPosition(trial_number, 2, 1:wl.Samples(trial_number)));
+
+    % Get start and target positions from the wl.WL.cfg structure
+    start_pos = wl.WL.cfg.HomePosition(1:2);  % Extracting the (x, y) home position
+    target_pos = wl.WL.cfg.TargetPosition(1:2);  % Extracting the (x, y) target position
+    jump_distance = wl.TrialData.JumpDistance(trial_number);  % Assuming this field exists
+
+    % Create a new figure for the plot
+    figure;
+
+    % Plot the trajectory
+    plot(x, y, 'LineWidth', 2, 'DisplayName', 'Trajectory');
+    hold on;
+
+    % Plot the starting position (Home)
+    plot(start_pos(1), start_pos(2), 'ro', 'MarkerSize', 10, 'LineWidth', 2, 'DisplayName', 'Start Position');
+
+    % Plot the target position
+    plot(target_pos(1), target_pos(2), 'gx', 'MarkerSize', 10, 'LineWidth', 2, 'DisplayName', 'Target Position');
+     % Plot the jump distance information as text on the graph
+    jump_text = ['Jump Distance: ', num2str(jump_distance), ' cm'];
+ 
+
+    
+
+    % Set the axis limits based on the configuration
+    xlim([-10 10]);  % You can adjust this as needed
+    ylim([-10 25]);  % Adjust this to suit your experiment's target distance
+
+    % Add axis labels with units
+    xlabel('X Position (cm)');
+    ylabel('Y Position (cm)');
+
+    % Add a legend to the plot
+    legend('Location', 'Best');
+
+      % Set title to indicate which trial is being plotted and include the jump size
+    title(['Trajectory for Trial ', num2str(trial_number), ' - Jump Distance: ', num2str(jump_distance), ' cm']);
+
+    % Grid for better visualization
+    grid on;
+
+    hold off;
+end
 
 % 
 % plot_velocity_over_time(wl, 1);
