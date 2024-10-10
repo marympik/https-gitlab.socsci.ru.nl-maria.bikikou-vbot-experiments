@@ -21,10 +21,10 @@ classdef JumpCursors < wl_experiment
                 % Initialize robot and hardware
                 WL.Robot = WL.robot(WL.cfg.RobotName);  % Mouse Flag and Max Force processed automatically
 
-                % % Set up S826 analog input and digital output channels.
-                %  WL.Sensoray = wl_sensoray(WL.cfg.SensorayAddress); % Address should be -1 if used with a robot.
-                %  ok = WL.Sensoray.AnalogInputSetup(WL.cfg.SensorayAnalogChannels);
-                WL.Hardware = wl_hardware(WL.Robot); % Initialize hardware, WL.Sensoray
+                % Set up S826 analog input and digital output channels.
+                 WL.Sensoray = wl_sensoray(WL.cfg.SensorayAddress); % Address should be -1 if used with a robot.
+                 ok = WL.Sensoray.AnalogInputSetup(WL.cfg.SensorayAnalogChannels);
+                WL.Hardware = wl_hardware(WL.Robot, WL.Sensoray); % Initialize hardware, WL.Sensoray
 
                 ok = WL.Hardware.Start();
 
@@ -175,14 +175,14 @@ classdef JumpCursors < wl_experiment
                 % disp(['Feedback not displayed. Timer: ', num2str(WL.Timer.FeedbackTimer.GetTime())]);
             end
 
-            % if WL.cfg.hasJumped
-            %     elapsedTime = WL.Timer.CursorVisibilityTimer.GetTime();
-            %     if elapsedTime > WL.cfg.CursorVisibilityDuration
-            %         if WL.cfg.CursorVisible  % Check to ensure the cursor is currently visible
-            %             WL.cfg.CursorVisible = false;  % Make the cursor invisible
-            %         end
-            %     end
-            % end
+            if WL.cfg.hasJumped
+                elapsedTime = WL.Timer.CursorVisibilityTimer.GetTime();
+                if elapsedTime > WL.cfg.CursorVisibilityDuration
+                    if WL.cfg.CursorVisible  % Check to ensure the cursor is currently visible
+                        WL.cfg.CursorVisible = false;  % Make the cursor invisible
+                    end
+                end
+            end
 
             % define when to draw to activate the photodiode
             if (WL.cfg.CursorVisible && WL.State.Current == WL.State.POSTJUMP )
@@ -214,7 +214,7 @@ classdef JumpCursors < wl_experiment
             switch WL.State.Current % State processing.
 
                 case WL.State.INITIALIZE % Initialization state.
-                    WL.cfg.hasJumped = false;
+                    % WL.cfg.hasJumped = false;
                     WL.Timer.Paradigm.ExperimentTimer.Reset;
                     WL.state_next(WL.State.SETUP);
 
@@ -245,7 +245,7 @@ classdef JumpCursors < wl_experiment
                     WL.state_next(WL.State.DELAY);
 
                 case WL.State.DELAY           % Delay period before go signal.
-                    WL.cfg.hasJumped = false;
+                    % WL.cfg.hasJumped = false;
                     if WL.State.Timer.GetTime>WL.cfg.TrialDelay
                         % disp(' timer')
                         WL.state_next(WL.State.GO);
@@ -255,7 +255,7 @@ classdef JumpCursors < wl_experiment
                     end
 
                 case WL.State.GO % Go signal to cue movement.
-                    WL.cfg.hasJumped = false;
+                    % WL.cfg.hasJumped = false;
                     WL.cfg.hasPlayedFourthBeep = false;  % Reset the flag at the start of the trial
                     WL.Timer.MovementReactionTimer.Reset();
                     currentSpeedCue = WL.TrialData.SpeedCue{WL.TrialNumber};
@@ -276,7 +276,7 @@ classdef JumpCursors < wl_experiment
 
                 case WL.State.MOVEWAIT
                     if  WL.movement_started()
-                        WL.cfg.hasJumped = false;
+                        % WL.cfg.hasJumped = false;
                         WL.Timer.MovementDurationTimer.Reset;
                         WL.Trial.MovementReactionTime = WL.Timer.MovementReactionTimer.GetTime;
 
@@ -286,23 +286,23 @@ classdef JumpCursors < wl_experiment
                         WL.state_next(WL.State.TIMEOUT);
                     end
                 case WL.State.MOVING
-                    WL.cfg.CursorPosition = WL.Robot.Position; % Update cursor position continuously
+                    % WL.cfg.CursorPosition = WL.Robot.Position; % Update cursor position continuously
                     if WL.cfg.isPracticeTrial
                     else
                         % Regular behavior for experimental trials
                     end
                     WL.cfg.hasPlayedFourthBeep = false;
-                    if reaches_jump_point(WL) && ~WL.cfg.hasJumped % Check if it's time to jump
-                        %disp('Transitioning to CURSORJUMP');
+                     % if reaches_jump_point(WL) && ~WL.cfg.hasJumped % Check if it's time to jump
+                     %    disp('Transitioning to CURSORJUMP');
                         WL.state_next(WL.State.CURSORJUMP);
-                    end
+                    % end
                 case WL.State.CURSORJUMP
-                    if ~WL.cfg.hasJumped
-                        WL.cfg.CursorVisible = true;
-                        WL.cfg.hasJumped = true;
-                        WL.Timer.CursorVisibilityTimer.Reset;
+                    % if ~WL.cfg.hasJumped
+                    %     WL.cfg.CursorVisible = true;
+                    %     WL.cfg.hasJumped = true;
+                    %     WL.Timer.CursorVisibilityTimer.Reset;
                         WL.state_next(WL.State.POSTJUMP);
-                    end
+                    % end
 
                 case WL.State.POSTJUMP
                     % Check if 100ms have passed since the jump
@@ -337,13 +337,13 @@ classdef JumpCursors < wl_experiment
                     ok = WL.Robot.RampDown();
                     finalPosition = WL.Robot.Position;  % Get final position
                     targetPosition = WL.Trial.TargetPosition;  % Get target position
-                    movementDuration = WL.Timer.MovementDurationTimer.GetTime(); 
-                    WL.Trial.MovementDurationTime(WL.TrialNumber) = movementDuration;
-                    % Calculate the Euclidean distance (accuracy)
-                    % accuracy = sqrt(sum((finalPosition - targetPosition).^2));
+                    movementDuration = WL.Timer.MovementDurationTimer.GetTime();           
+                    WL.Trial.MovementDurationTime = movementDuration;
+
+
 
                     % Store the accuracy in the TrialData table
-                    WL.Trial.Accuracy(WL.TrialNumber) = accuracy;
+                    % WL.Trial.Accuracy(WL.TrialNumber) = accuracy;
 
                     corrections = diff(WL.cfg.PositionLog, 1);  % Calculate changes in position
                     correctionMagnitude = sum(sqrt(sum(corrections.^2, 2)));  % Sum of corrections

@@ -21,10 +21,10 @@ classdef JumpCursors < wl_experiment
                 % Initialize robot and hardware
                 WL.Robot = WL.robot(WL.cfg.RobotName);  % Mouse Flag and Max Force processed automatically
 
-                % % Set up S826 analog input and digital output channels.
-                %  WL.Sensoray = wl_sensoray(WL.cfg.SensorayAddress); % Address should be -1 if used with a robot.
-                %  ok = WL.Sensoray.AnalogInputSetup(WL.cfg.SensorayAnalogChannels);
-                WL.Hardware = wl_hardware(WL.Robot); % Initialize hardware, WL.Sensoray
+                % Set up S826 analog input and digital output channels.
+                 WL.Sensoray = wl_sensoray(WL.cfg.SensorayAddress); % Address should be -1 if used with a robot.
+                 ok = WL.Sensoray.AnalogInputSetup(WL.cfg.SensorayAnalogChannels);
+                WL.Hardware = wl_hardware(WL.Robot, WL.Sensoray); % Initialize hardware, WL.Sensoray
 
                 ok = WL.Hardware.Start();
 
@@ -235,12 +235,12 @@ classdef JumpCursors < wl_experiment
                         WL.cfg.TargetVisible = true;
                     end
                     if (WL.robot_stationary() &&  WL.robot_home() && all(WL.Robot.Active))
-                        % WL.cfg.hasJumped = false;
+                        WL.cfg.hasJumped = false;
                         WL.state_next(WL.State.START);
                     end
                 case WL.State.START % Start trial.
                     WL.Timer.MovementDurationTimer.Reset();
-                    WL.cfg.CursorVisible = false;
+                    WL.cfg.CursorVisible = true;
                     WL.trial_start();
                     WL.state_next(WL.State.DELAY);
 
@@ -292,10 +292,10 @@ classdef JumpCursors < wl_experiment
                         % Regular behavior for experimental trials
                     end
                     WL.cfg.hasPlayedFourthBeep = false;
-                     if reaches_jump_point(WL) && ~WL.cfg.hasJumped % Check if it's time to jump
-                        disp('Transitioning to CURSORJUMP');
+                     % if reaches_jump_point(WL) && ~WL.cfg.hasJumped % Check if it's time to jump
+                     %    disp('Transitioning to CURSORJUMP');
                         WL.state_next(WL.State.CURSORJUMP);
-                    end
+                    % end
                 case WL.State.CURSORJUMP
                     if ~WL.cfg.hasJumped
                         WL.cfg.CursorVisible = true;
