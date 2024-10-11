@@ -155,6 +155,7 @@ WL.TrialData = T;
 WL.Trial.Accuracy = nan(height(WL.TrialData), 1);  % Placeholder for accuracy
 WL.Trial.CorrectionMagnitude = nan(height(WL.TrialData), 1);
 WL.Trial.MovementDurationTime = nan(height(WL.TrialData), 1);
+WL.TrialData.ExperimentTime = nan(height(WL.TrialData), 1);  % Initialize as NaN for all trials
 
 
 disp(['Total number of trials: ', num2str(height(WL.TrialData))]);

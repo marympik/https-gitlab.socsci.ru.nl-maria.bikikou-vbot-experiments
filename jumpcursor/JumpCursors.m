@@ -339,6 +339,7 @@ classdef JumpCursors < wl_experiment
                     targetPosition = WL.Trial.TargetPosition;  % Get target position
                     movementDuration = WL.Timer.MovementDurationTimer.GetTime();           
                     WL.Trial.MovementDurationTime = movementDuration;
+                    WL.TrialData.ExperimentTime(WL.TrialNumber) = WL.Timer.Paradigm.ExperimentTimer.GetTime();
 
 
 

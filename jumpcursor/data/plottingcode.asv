@@ -1,6 +1,5 @@
 % Load the data
-wl = load('pilot02.mat');
-
+wl = load("pilot02.mat");
 
 
 
@@ -320,51 +319,53 @@ wl = load('pilot02.mat');
 %     title(['Robot Velocity Magnitude (Speed) for Trial ', num2str(trial_number)]);
 %     grid on;
 % end
-plot_movement_start_end(wl, 1);
-function plot_movement_start_end(wl, trial_number)
-    % Check if trial_number is valid
-    if trial_number < 1 || trial_number > size(wl.RobotPosition, 1)
-        error('Invalid trial number');
-    end
-
-    % Extract X and Y positions and velocities of the robot during the trial
-    vx = squeeze(wl.RobotVelocity(trial_number, 1, 1:wl.Samples(trial_number)));
-    vy = squeeze(wl.RobotVelocity(trial_number, 2, 1:wl.Samples(trial_number)));
-
-    % Calculate the velocity magnitude (speed)
-    speed = sqrt(vx.^2 + vy.^2);
-
-    % Extract the time stamps corresponding to the trial in seconds
-    time = wl.TimeStamp(trial_number, 1:wl.Samples(trial_number));
-
-    % Find the index where speed exceeds the threshold to mark start of movement
-    speed_threshold = 0.1;  % Threshold to avoid noise
-    movement_start_idx = find(speed > speed_threshold, 1, 'first');  % Find when speed exceeds threshold
-
-    % Get the movement duration from pre-existing data
-    movement_end_time = wl.WL.TrialData.MovementDurationTime(trial_number);  % Existing duration
-    movement_end_idx = find(time >= movement_end_time, 1, 'first');  % Find the closest time to the duration
-
-    % Plot the speed (velocity magnitude) over time
-    figure;
-    plot(time, speed, 'LineWidth', 2, 'DisplayName', 'Speed');
-    hold on;
-
-    % Mark the start of movement based on speed threshold
-    xline(time(movement_start_idx), 'r--', 'LineWidth', 2, 'DisplayName', 'Start of Movement');
-    
-    % Mark the end of movement using the pre-existing movement duration
-    xline(time(movement_end_idx), 'g--', 'LineWidth', 2, 'DisplayName', 'End of Movement');
-
-    % Add labels, title, and legend
-    xlabel('Time (s)');
-    ylabel('Speed (cm/s)');
-    title(['Movement Start and End for Trial ', num2str(trial_number)]);
-    legend('show');
-    grid on;
-    hold off;
-end
-
+% plot_velocity_with_movement_start_end(wl, 1);
+% function plot_velocity_with_movement_start_end(wl, trial_number)
+%     % Check if trial_number is valid
+%     if trial_number < 1 || trial_number > size(wl.RobotPosition, 1)
+%         error('Invalid trial number');
+%     end
+% 
+%     % Extract X and Y velocities of the robot during the trial
+%     vx = squeeze(wl.RobotVelocity(trial_number, 1, 1:wl.Samples(trial_number)));
+%     vy = squeeze(wl.RobotVelocity(trial_number, 2, 1:wl.Samples(trial_number)));
+% 
+%     % Calculate the velocity magnitude (speed)
+%     speed = sqrt(vx.^2 + vy.^2);
+% 
+%     % Extract the time stamps corresponding to the trial in seconds
+%     time = wl.TimeStamp(trial_number, 1:wl.Samples(trial_number));
+% 
+%     % Step 1: Use pre-existing data to determine the start of movement directly
+%     % Assuming movement_start_time is available in wl.WL.TrialData
+%     movement_start_time = wl.WL.TrialData.MovementStartTime(trial_number);  % Get the actual start of movement time
+%     movement_start_idx = find(time >= movement_start_time, 1, 'first');  % Find the index for the start of movement
+% 
+%     % Step 2: Use the pre-existing movement duration to find the end of movement
+%     movement_end_time = wl.WL.TrialData.MovementDurationTime(trial_number);  % Movement duration in seconds
+%     movement_end_idx = find(time >= movement_end_time, 1, 'first');  % Find the index for end of movement
+% 
+%     % Plot the velocity (speed) over time
+%     figure;
+%     plot(time, speed, 'LineWidth', 2, 'DisplayName', 'Speed');
+%     hold on;
+% 
+%     % Mark the start of movement based on actual start time
+%     xline(time(movement_start_idx), 'r--', 'LineWidth', 2, 'DisplayName', 'Start of Movement');
+% 
+%     % Mark the end of movement based on pre-existing movement duration
+%     xline(time(movement_end_idx), 'g--', 'LineWidth', 2, 'DisplayName', 'End of Movement');
+% 
+%     % Add labels, title, and legend
+%     xlabel('Time (s)');
+%     ylabel('Speed (cm/s)');
+%     title(['Velocity Profile with Movement Start and End for Trial ', num2str(trial_number)]);
+%     legend('show');
+%     grid on;
+%     hold off;
+% end
+% 
+% 
 
 
 %  plot_correction_vs_jump_size(wl);
@@ -602,4 +603,276 @@ end
 % title('Trial Durations Over Time for Fast and Slow Conditions');
 % legend('show');
 % grid on;
+ %Initialize an array to store the movement durations for the whole experiment
+ %code for all the movements
+
+
+%Initialize an array to store the movement durations for the whole experiment
+% wholeMovementDurations = nan(height(WL.TrialData), 1);
+% 
+% % Loop through the trials
+% for trial = 1:height(WL.TrialData)
+%     % Extract the non-zero time stamps for this trial directly from wl
+%     timeData = nonzeros(wl.TimeStamp(trial, :));  % Valid time stamps for the trial
+% 
+%     % Ensure that there are valid time data
+%     if ~isempty(timeData)
+%         % Calculate the total movement duration from the first valid time sample to the last
+%         movementDuration = timeData(end) - timeData(1);  % Total duration for this trial
+%         wholeMovementDurations(trial) = movementDuration;  % Store the result
+%     end
+% end
+% 
+% % Plot the whole movement duration
+% figure;
+% plot(1:length(wholeMovementDurations), wholeMovementDurations, 'o-', 'LineWidth', 1.5);
+% xlabel('Trial Number');
+% ylabel('Whole Movement Duration (seconds)');
+% title('Whole Movement Duration for Each Trial');
+% grid on;
+
+% plot_movement_duration_for_trial(wl,1);
+% % Define the function
+% function plot_movement_duration_for_trial(wl, trial_number)
+%     % Function to plot the movement duration for a specific trial
+%     % Inputs:
+%     %   wl: structure containing the TimeStamp data
+%     %   trial_number: the trial number to calculate and plot movement duration for
+% 
+%     % Ensure the trial number is within range
+%     if trial_number > size(wl.TimeStamp, 1)
+%         error('Trial number exceeds the number of trials in TimeStamp data.');
+%     end
+% 
+%     % Extract the non-zero time stamps for the specified trial
+%     timeData = nonzeros(wl.TimeStamp(trial_number, :));  % Valid time stamps for the trial
+% 
+%     % Ensure that there are valid time data
+%     if ~isempty(timeData)
+%         % Calculate the total movement duration from the first valid time sample to the last
+%         movementDuration = timeData(end) - timeData(1);  % Total duration for the specified trial
+%     else
+%         disp(['No valid time data for trial ', num2str(trial_number)]);
+%         movementDuration = NaN;
+%     end
+% 
+%     % Create a time vector for plotting (starting at the first timestamp)
+%     time = timeData - timeData(1);  % Time from the start of the trial
+% 
+%     startPosition = wl.RobotPosition(trial_number, 1, 1);  % Start position (assuming X-coordinate)
+%     targetPosition = wl.TrialData.TargetPosition(trial_number);  % Target position
+% 
+%     % Plot the movement duration for this trial
+%     figure;
+%     plot(time, ones(size(time)) * movementDuration, 'o-', 'LineWidth', 1.5, 'MarkerSize', 8);
+%     xlabel('Time (seconds)');
+%     ylabel('Movement Duration (seconds)');
+%     title(['Movement Duration for Trial ', num2str(trial_number)]);
+%     hold on;
+% 
+%     % Add markers for the start position and target position
+%     ylimits = ylim;  % Get current y-axis limits to properly place markers
+%     plot([time(1) time(1)], ylimits, 'g--', 'LineWidth', 2);  % Start position marker (green dashed line)
+%     plot([time(end) time(end)], ylimits, 'r--', 'LineWidth', 2);  % Target position marker (red dashed line)
+% 
+%     % Annotate the plot
+%     text(time(1), ylimits(2), ' Start Position', 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'left', 'FontSize', 12, 'Color', 'green');
+%     text(time(end), ylimits(2), ' Target Position', 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'right', 'FontSize', 12, 'Color', 'red');
+% 
+%     grid on;
+%     hold off;
+% end
+
+% plot_velocity_and_movement_duration_for_trial(wl, 2);
+% function plot_velocity_and_movement_duration_for_trial(wl, trial_number)
+%     % Function to plot velocity, movement duration for a specific trial,
+%     % and mark the start and target positions on the plot.
+% 
+%     % Ensure the trial number is within range
+%     if trial_number > size(wl.TimeStamp, 1)
+%         error('Trial number exceeds the number of trials in TimeStamp data.');
+%     end
+% 
+%     % Extract the non-zero time stamps for the specified trial
+%     timeData = nonzeros(wl.TimeStamp(trial_number, :));  % Valid time stamps for the trial
+% 
+%     % Ensure that there are valid time data
+%     if ~isempty(timeData)
+%         % Calculate the total movement duration from the first valid time sample to the last
+%         movementDuration = timeData(end) - timeData(1);  % Total duration for the specified trial
+%         time = timeData - timeData(1);  % Time from the start of the trial
+%     else
+%         disp(['No valid time data for trial ', num2str(trial_number)]);
+%         movementDuration = NaN;
+%         return;  % Exit the function if there's no valid data
+%     end
+% 
+%     % Extract the velocity data
+%     x = wl.RobotPosition(trial_number, 1, 1:wl.Samples(trial_number));
+%     y = wl.RobotPosition(trial_number, 2, 1:wl.Samples(trial_number));
+% 
+%     % Calculate differences in position between samples
+%     dx = diff(squeeze(x));  % Difference in X positions
+%     dy = diff(squeeze(y));  % Difference in Y positions
+% 
+%     dt = diff(nonzeros(wl.TimeStamp(trial_number,:)));  % Time intervals
+% 
+%     % Calculate velocity magnitude
+%     velocity = sqrt((dx ./ dt).^2 + (dy ./ dt).^2);  % Calculate velocity 
+% 
+%     % Adjust time to match the size of velocity (one less point due to diff)
+%     time = time(2:end);
+% 
+%     % Plot the velocity over time
+%     figure;
+%     plot(time, velocity, 'b-', 'LineWidth', 1.5);
+%     xlabel('Time (seconds)');
+%     ylabel('Velocity (units/s)');
+%     title(['Velocity Profile and Movement Duration for Trial ', num2str(trial_number)]);
+%     hold on;
+% 
+%     % Add markers for the start position and target position
+%     ylimits = ylim;  % Get current y-axis limits to properly place markers
+%     plot([time(1) time(1)], ylimits, 'g--', 'LineWidth', 2);  % Start position marker (green dashed line)
+%     plot([time(end) time(end)], ylimits, 'r--', 'LineWidth', 2);  % Target position marker (red dashed line)
+% 
+%     % Annotate the plot
+%     text(time(1), ylimits(2), ' Start Position', 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'left', 'FontSize', 12, 'Color', 'green');
+%     text(time(end), ylimits(2), ' Target Position', 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'right', 'FontSize', 12, 'Color', 'red');
+% 
+%     % Plot the movement duration as a horizontal line
+%     plot([time(1) time(end)], [movementDuration movementDuration], 'k--', 'LineWidth', 1.5);
+%     text(time(end), movementDuration, [' Movement Duration: ', num2str(movementDuration), ' s'], 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'right', 'FontSize', 12, 'Color', 'black');
+% 
+%     grid on;
+%     hold off;
+% end
+
  
+% plot_robot_position_with_duration(wl, 1);
+% function plot_robot_position_with_duration(wl, trial_number)
+%     % Function to plot robot position with movement duration for a specific trial
+%     % Inputs:
+%     %   wl: structure containing the data
+%     %   trial_number: the trial number to analyze
+% 
+%     % Define the states for movement start and end
+%     HomeState = 4;  % INITIALIZE state (movement start)
+%     MovementEndState = 11;  % FINISH state (movement end)
+% 
+%     % Extract the state data for the trial
+%     stateData = wl.State(trial_number, :);
+% 
+%     % Find the first occurrence of HomeState and MovementEndState
+%     timeStartIndex = find(stateData == HomeState, 1, 'first');
+%     timeEndIndex = find(stateData == MovementEndState, 1, 'first');
+% 
+%     % Extract the corresponding time stamps
+%     timeStart = wl.TimeStamp(trial_number, timeStartIndex);
+%     timeEnd = wl.TimeStamp(trial_number, timeEndIndex);
+% 
+%     % Calculate the movement duration
+%     movementDuration = timeEnd - timeStart;
+% 
+%     % Extract the robot position data for the trial
+%     robotPositionX = wl.RobotPosition(trial_number, 1, timeStartIndex:timeEndIndex);
+%     robotPositionY = wl.RobotPosition(trial_number, 2, timeStartIndex:timeEndIndex);
+% 
+%     % Extract the corresponding time stamps and subtract the movement start time
+%     timeData = wl.TimeStamp(trial_number, timeStartIndex:timeEndIndex) - timeStart;
+% 
+%     % Plot robot position X and Y against the adjusted time
+%     figure;
+%     subplot(2, 1, 1);
+%     plot(timeData, squeeze(robotPositionX), 'b-', 'LineWidth', 1.5);
+%     xlabel('Time (seconds)');
+%     ylabel('Robot Position X (units)');
+%     title(['Robot Position X over Time for Trial ', num2str(trial_number)]);
+%     grid on;
+% 
+%     subplot(2, 1, 2);
+%     plot(timeData, squeeze(robotPositionY), 'r-', 'LineWidth', 1.5);
+%     xlabel('Time (seconds)');
+%     ylabel('Robot Position Y (units)');
+%     title(['Robot Position Y over Time for Trial ', num2str(trial_number)]);
+%     grid on;
+% 
+%     % Print the movement duration
+%     fprintf('Movement Duration for Trial %d: %.4f seconds\n', trial_number, movementDuration);
+% end
+
+% plot_robot_position_over_time(wl, 1);
+% function plot_robot_position_over_time(wl, trial_number)
+%     % Function to plot robot position data (X and Y) over time for a specific trial
+%     % Inputs:
+%     %   wl: structure containing the data
+%     %   trial_number: the trial number to analyze
+% 
+%     % Extract the robot position data (X and Y) for the trial
+%     robotPositionX = squeeze(wl.RobotPosition(trial_number, 1, 1:wl.Samples(trial_number)));
+%     robotPositionY = squeeze(wl.RobotPosition(trial_number, 2, 1:wl.Samples(trial_number)));
+% 
+%     % Extract the corresponding time stamps for the trial
+%     timeData = wl.TimeStamp(trial_number, 1:wl.Samples(trial_number));
+% 
+%     % Plot robot position X and Y against the time
+%     figure;
+%     plot(timeData, robotPositionX, 'b-', 'LineWidth', 1.5);
+%     hold on;
+%     plot(timeData, robotPositionY, 'r-', 'LineWidth', 1.5);
+% 
+%     % Customize the plot
+%     xlabel('Time (seconds)');
+%     ylabel('Robot Position (units)');
+%     title(['Robot Position over Time for Trial ', num2str(trial_number)]);
+%     legend('Position X', 'Position Y');
+%     grid on;
+%     hold off;
+% end
+plot_robot_position_with_movement_time(wl, 1);
+function plot_robot_position_with_movement_time(wl, trial_number)
+
+    % Define the states for movement start (Initialize) and end (Finish)
+    InitializeState = 4;  % Replace with correct value for 'Initialize'
+    FinishState = 11;     % Replace with correct value for 'Finish'
+    
+    % Extract the state data for the trial
+    stateData = wl.State(trial_number, :);
+    
+    % Find the first occurrence of 'Initialize' and 'Finish'
+    timeStartIndex = find(stateData == InitializeState, 1, 'first');
+    timeEndIndex = find(stateData == FinishState, 1, 'first');
+    
+    % Extract the corresponding time stamps for start and end
+    timeStart = wl.TimeStamp(trial_number, timeStartIndex);
+    timeEnd = wl.TimeStamp(trial_number, timeEndIndex);
+    
+    movementDuration = timeEnd - timeStart;
+    
+    % Extract the robot position data (X and Y) for the trial
+    robotPositionX = squeeze(wl.RobotPosition(trial_number, 1, 1:wl.Samples(trial_number)));
+    robotPositionY = squeeze(wl.RobotPosition(trial_number, 2, 1:wl.Samples(trial_number)));
+    
+    % Extract the corresponding time stamps for the trial
+    timeData = wl.TimeStamp(trial_number, 1:wl.Samples(trial_number));
+    
+    % Plot robot position X and Y against the time
+    figure;
+    plot(timeData, robotPositionX, 'b-', 'LineWidth', 1.5);
+    hold on;
+    plot(timeData, robotPositionY, 'r-', 'LineWidth', 1.5);
+    plot([timeStart timeStart], ylim, 'g--', 'LineWidth', 2);  % Start position marker (green dashed line)
+    plot([timeEnd timeEnd], ylim, 'r--', 'LineWidth', 2);      % End position marker (red dashed line)
+    
+    % Customize the plot
+    xlabel('Time (seconds)');
+    ylabel('Robot Position (units)');
+    title(['Robot Position over Time for Trial ', num2str(trial_number)]);
+    legend('Position X', 'Position Y', 'Movement Start', 'Movement End');
+    grid on;
+    hold off;
+    
+    % Print the movement duration
+    fprintf('Movement Duration for Trial %d: %.4f seconds\n', trial_number, movementDuration);
+end
+
