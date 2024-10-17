@@ -21,9 +21,8 @@ classdef JumpCursors < wl_experiment
                 % Initialize robot and hardware
                 WL.Robot = WL.robot(WL.cfg.RobotName);  % Mouse Flag and Max Force processed automatically
 
-                 Set up S826 analog input and digital output channels.
-                 WL.Sensoray = wl_sensoray(WL.cfg.SensorayAddress); % Address should be -1 if used with a robot.
-                 ok = WL.Sensoray.AnalogInputSetup(WL.cfg.SensorayAnalogChannels);
+                WL.Sensoray = wl_sensoray(WL.cfg.SensorayAddress); % Address should be -1 if used with a robot.
+                ok = WL.Sensoray.AnalogInputSetup(WL.cfg.SensorayAnalogChannels);
                 WL.Hardware = wl_hardware(WL.Robot ,  WL.Sensoray ); % Initialize hardware, WL.Sensoray
 
                 ok = WL.Hardware.Start();
@@ -157,9 +156,9 @@ classdef JumpCursors < wl_experiment
                 if  isfield(WL.Trial, 'TargetPosition') && ~isempty(WL.Trial.TargetPosition);
                     wl_draw_sphere(WL.Trial.TargetPosition + [0 0 -2]', WL.cfg.TargetRadius, [1 1 0], 'Alpha', 0.7);
                 end
-                if WL.cfg.isPracticeTrial || WL.cfg.CursorVisible
-                    wl_draw_sphere(WL.Robot.Position, WL.cfg.CursorRadius, [1 0 0], 'Alpha', 0.7);
-                end
+                % if WL.cfg.isPracticeTrial || WL.cfg.CursorVisible
+                %     wl_draw_sphere(WL.Robot.Position, WL.cfg.CursorRadius, [1 0 0], 'Alpha', 0.7);
+                % end
                 cursorPos = WL.Robot.Position + [WL.cfg.hasJumped * WL.Trial.JumpDistance, 0, 0]';
                 if WL.cfg.CursorVisible
                     % red visible
@@ -302,10 +301,10 @@ classdef JumpCursors < wl_experiment
                         % Regular behavior for experimental trials
                     end
                     WL.cfg.hasPlayedFourthBeep = false;
-                     % if reaches_jump_point(WL) && ~WL.cfg.hasJumped % Check if it's time to jump
-                     %    disp('Transitioning to CURSORJUMP');
+                     if reaches_jump_point(WL) && ~WL.cfg.hasJumped % Check if it's time to jump
+                        %disp('Transitioning to CURSORJUMP');
                         WL.state_next(WL.State.CURSORJUMP);
-                    % end
+                     end
                 case WL.State.CURSORJUMP
                     if ~WL.cfg.hasJumped
                         WL.cfg.CursorVisible = true;
@@ -317,7 +316,7 @@ classdef JumpCursors < wl_experiment
                 case WL.State.POSTJUMP
                     % Check if 100ms have passed since the jump
                     WL.cfg.hasPlayedFourthBeep = false;
-                    if WL.Timer.CursorVisibilityTimer.GetTime() > 0.05
+                    if WL.Timer.CursorVisibilityTimer.GetTime() > 0.1
                         WL.cfg.CursorVisible = false;
                     end
 
@@ -507,7 +506,7 @@ classdef JumpCursors < wl_experiment
 
         function flag = reaches_jump_point(WL)
             % Define the fixed distance for the jump
-            fixed_distance = 6;
+            fixed_distance = 4;
 
             % Calculate the y-axis distance from the cursor's position to the home position
             current_distance_y = WL.cfg.CursorPosition(2) - WL.cfg.HomePosition(2);

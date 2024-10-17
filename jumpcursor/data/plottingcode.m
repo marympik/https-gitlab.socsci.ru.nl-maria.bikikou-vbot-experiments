@@ -1,5 +1,5 @@
 % Load the data
-wl = load("pilot02.mat");
+wl = load("PILOT04.mat");
 
 
 
@@ -54,7 +54,7 @@ wl = load("pilot02.mat");
 % end
 % 
 % 
-trial_number = 144; % Specify the trial number
+trial_number = 67; % Specify the trial number
 % Check if trial_number is valid
 if trial_number < 1 || trial_number > size(wl.RobotPosition, 1)
     error('Invalid trial number');

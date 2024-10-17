@@ -33,7 +33,7 @@ end
 WL.cfg.SensorayAddress = -1;
 WL.cfg.SensorayAnalogChannels = 1:7; % 1-6 is force transducer, 7 is photodiode
 WL.cfg.PhotoDiodePosition = [29.8, 16.8, 0];
-WL.cfg.PhotoDiodeRadius = [15];
+WL.cfg.PhotoDiodeRadius = [0.5];
 
 WL.cfg.Debug = 0;
 WL.cfg.CursorRadius = 0.5;
@@ -51,7 +51,7 @@ WL.cfg.ErrorWait = 1.5;
 WL.cfg.TargetDistance = 20;
 WL.cfg.HomePosition = [0 -7 0]';
 WL.cfg.TargetPosition = WL.cfg.HomePosition + [0 WL.cfg.TargetDistance 0]';
-WL.cfg.isPracticeTrial = true;
+WL.cfg.isPracticeTrial = false;
 
 % Define the possible jump distances in meters
 WL.cfg.possibleJumpDistances = [-10,-8, -6, -4, -2, 0, 2, 4, 6, 8, 10];
@@ -112,9 +112,9 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % JumpDistances.
 
-JumpDistanceCount = 12;
-RepetitionCount = 3;
-PracticeRepetitionCount = 12;
+JumpDistanceCount = 11;
+RepetitionCount = 4;
+PracticeRepetitionCount = 11;
 JumpDistance = num2cell([WL.cfg.possibleJumpDistances]); %  Targets evenly spaced around a circle.
 MovementSpeed = num2cell([{'slow'},{'fast'}]);
 WL.cfg.JumpDistance = JumpDistance;
@@ -126,8 +126,8 @@ SlowJumps.Trial.Index.SpeedCue = [ones(1,JumpDistanceCount)];
 SlowJumps.Permute = true;
 
 
-FastJumps.Trial.Index.JumpDistance = [ 1:JumpDistanceCount ];
-FastJumps.Trial.Index.SpeedCue = [2*ones(1,JumpDistanceCount)];
+FastJumps.Trial.Index.JumpDistance =  1:JumpDistanceCount ;
+FastJumps.Trial.Index.SpeedCue = 2*ones(1,JumpDistanceCount);
 FastJumps.Permute = true;
 
 
