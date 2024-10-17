@@ -51,7 +51,7 @@ WL.cfg.ErrorWait = 1.5;
 WL.cfg.TargetDistance = 20;
 WL.cfg.HomePosition = [0 -7 0]';
 WL.cfg.TargetPosition = WL.cfg.HomePosition + [0 WL.cfg.TargetDistance 0]';
-WL.cfg.isPracticeTrial = false;
+WL.cfg.isPracticeTrial = true;
 
 % Define the possible jump distances in meters
 WL.cfg.possibleJumpDistances = [-6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6];
@@ -155,7 +155,7 @@ WL.TrialData = T;
 WL.Trial.Accuracy = nan(height(WL.TrialData), 1);  % Placeholder for accuracy
 WL.Trial.CorrectionMagnitude = nan(height(WL.TrialData), 1);
 WL.Trial.MovementDurationTime = nan(height(WL.TrialData), 1);
-WL.TrialData.ExperimentTime = nan(height(WL.TrialData), 1);  % Initialize as NaN for all trials
+
 
 
 disp(['Total number of trials: ', num2str(height(WL.TrialData))]);

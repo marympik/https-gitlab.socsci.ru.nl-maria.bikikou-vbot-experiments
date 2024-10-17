@@ -54,7 +54,7 @@ wl = load("pilot02.mat");
 % end
 % 
 % 
-trial_number = 31; % Specify the trial number
+trial_number = 144; % Specify the trial number
 % Check if trial_number is valid
 if trial_number < 1 || trial_number > size(wl.RobotPosition, 1)
     error('Invalid trial number');
@@ -364,7 +364,7 @@ hold off;
 
 %Movementduration finally
 
-trial_number = 31;
+trial_number = 144;
 
 % Extract timestamps for the trial
 timeStamps = wl.TimeStamp(trial_number, 1:wl.Samples(trial_number));
@@ -383,8 +383,8 @@ speed = movmean(speed, 10);
 speed = speed - min(speed);
 
 % Define velocity thresholds to determine movement start and end
-velocityOnsetThreshold = 3;  % Threshold for movement start
-velocityOffsetThreshold = 1; % Threshold for movement end
+velocityOnsetThreshold = 2;  % Threshold for movement start
+velocityOffsetThreshold = 2; % Threshold for movement end
 
 % Find movement start index (first time velocity exceeds onset threshold)
 movementStartIdx = find(speed > velocityOnsetThreshold, 1, 'first');
