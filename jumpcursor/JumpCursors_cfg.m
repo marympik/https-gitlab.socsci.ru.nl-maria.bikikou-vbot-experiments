@@ -29,11 +29,11 @@ if ismac
     WL.cfg.vol = 0;
 end
 
-% settings for the photodiode
-WL.cfg.SensorayAddress = -1;
-WL.cfg.SensorayAnalogChannels = 1:7; % 1-6 is force transducer, 7 is photodiode
-WL.cfg.PhotoDiodePosition = [29.8, 16.8, 0];
-WL.cfg.PhotoDiodeRadius = [0.5];
+% % settings for the photodiode
+% WL.cfg.SensorayAddress = -1;
+% WL.cfg.SensorayAnalogChannels = 1:7; % 1-6 is force transducer, 7 is photodiode
+% WL.cfg.PhotoDiodePosition = [29.8, 16.8, 0];
+% WL.cfg.PhotoDiodeRadius = [0.5];
 
 WL.cfg.Debug = 0;
 WL.cfg.CursorRadius = 0.5;
@@ -54,7 +54,7 @@ WL.cfg.TargetPosition = WL.cfg.HomePosition + [0 WL.cfg.TargetDistance 0]';
 WL.cfg.isPracticeTrial = false;
 
 % Define the possible jump distances in meters
-WL.cfg.possibleJumpDistances = [-10,-8, -6, -4, -2, 0, 2, 4, 6, 8, 10];
+WL.cfg.possibleJumpDistances = [-10,-8, -6, -5,-4, -2, 0, 2, 4, 5, 6, 8, 10];
 WL.cfg.VelocityThreshold = 1;
 
 WL.cfg.plot_timing = 0;
@@ -112,9 +112,9 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % JumpDistances.
 
-JumpDistanceCount = 11;
+JumpDistanceCount = 13;
 RepetitionCount = 4;
-PracticeRepetitionCount = 11;
+PracticeRepetitionCount = 13;
 JumpDistance = num2cell([WL.cfg.possibleJumpDistances]); %  Targets evenly spaced around a circle.
 MovementSpeed = num2cell([{'slow'},{'fast'}]);
 WL.cfg.JumpDistance = JumpDistance;
@@ -152,7 +152,6 @@ else
 end
 
 WL.TrialData = T;
-WL.Trial.Accuracy = nan(height(WL.TrialData), 1);  % Placeholder for accuracy
 WL.Trial.CorrectionMagnitude = nan(height(WL.TrialData), 1);
 WL.Trial.MovementDurationTime = nan(height(WL.TrialData), 1);
 
