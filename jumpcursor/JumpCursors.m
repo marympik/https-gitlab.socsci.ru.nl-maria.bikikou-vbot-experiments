@@ -22,10 +22,9 @@ classdef JumpCursors < wl_experiment
                 WL.Robot = WL.robot(WL.cfg.RobotName);  % Mouse Flag and Max Force processed automatically
 
                 % Set up S826 analog input and digital output channels.
-                 % WL.Sensoray = wl_sensoray(WL.cfg.SensorayAddress); % Address should be -1 if used with a robot.
-                 % ok = WL.Sensoray.AnalogInputSetup(WL.cfg.SensorayAnalogChannels);
-                WL.Hardware = wl_hardware(WL.Robot ); % Initialize hardware, WL.Sensoray
-
+                 WL.Sensoray = wl_sensoray(WL.cfg.SensorayAddress); % Address should be -1 if used with a robot.
+                 ok = WL.Sensoray.AnalogInputSetup(WL.cfg.SensorayAnalogChannels);
+                WL.Hardware = wl_hardware(WL.Robot ,  WL.Sensoray ); % Initialize hardware, 
                 ok = WL.Hardware.Start();
 
                 % WL.cfg.showInstructions = true;
@@ -188,10 +187,10 @@ classdef JumpCursors < wl_experiment
                 end
             end
 
-            % define when to draw to activate the photodiode
-            % if (WL.cfg.CursorVisible && WL.State.Current == WL.State.POSTJUMP )
-            %     wl_draw_circle(WL.cfg.PhotoDiodePosition', WL.cfg.PhotoDiodeRadius, 0, [1 1 1]);
-            % end
+            %define when to draw to activate the photodiode
+            if (WL.cfg.CursorVisible && WL.State.Current == WL.State.POSTJUMP )
+                wl_draw_circle(WL.cfg.PhotoDiodePosition', WL.cfg.PhotoDiodeRadius, 0, [1 1 1]);
+            end
 
             Screen('EndOpenGL', win);
             % Display text information

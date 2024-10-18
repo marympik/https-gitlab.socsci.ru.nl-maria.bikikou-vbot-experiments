@@ -1,5 +1,5 @@
 % Load the data
-wl = load("PILOT04.mat");
+wl = load("test.mat");
 
 
 
