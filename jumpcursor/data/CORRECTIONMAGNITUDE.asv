@@ -19,10 +19,10 @@ for trial = 1:num_trials
     correctionX(trial) = finalHandPos(1) - target_pos(1);  % Signed correction along the x-axis
     
     % Extract jump distance for the trial
-    jumpDistances(trial) = TrialData.TargetPosition(trial);
+    jumpDistances(trial) = (trial);
     
     % Determine if the trial is a fast trial
-    isFastTrial(trial) = strcmp(TrialData.SpeedCue(trial), 'fast');  % Assuming 'SpeedCue' field specifies 'fast' or 'slow'
+    isFastTrial(trial) = strcmp(wl.TrialData.SpeedCue(trial), 'fast');  % Assuming 'SpeedCue' field specifies 'fast' or 'slow'
 end
 
 % Display correction and jump distance for each trial
@@ -47,6 +47,15 @@ title(' Correction vs. Jump Distance (Fast vs. Slow Trials)');
 legend('Fast Trials', 'Slow Trials');
 grid on;
 
+% Perform linear regression for fast and slow trials
+fastCoeffs = polyfit(fastJumpDistances, fastCorrectionX, 1);
+slowCoeffs = polyfit(slowJumpDistances, slowCorrectionX, 1);
 
+% Generate x values for plotting the regression lines
+xFit = linspace(min(jumpDistances), max(jumpDistances), 100);
+
+% Plot regression lines
+plot(xFit, polyval(fastCoeffs, xFit), 'r--', 'LineWidth', 1.5);  % Linear fit for fast trials
+plot(xFit, polyval(slowCoeffs, xFit), 'b--', 'LineWidth', 1.5);  % Linear fit for slow trials
 
 hold off;
