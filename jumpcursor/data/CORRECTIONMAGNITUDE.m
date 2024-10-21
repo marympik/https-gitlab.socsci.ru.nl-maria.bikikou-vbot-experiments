@@ -1,28 +1,29 @@
-num_trials = size(TimeStamp, 1);
+wl = load('10.mat');
+num_trials = size(wl.TimeStamp, 1);
 correctionX = NaN(1, num_trials);  % Store signed correction in the x-direction
 jumpDistances = NaN(1, num_trials);
 isFastTrial = false(1, num_trials);  % Boolean array to indicate if a trial is fast
 
 for trial = 1:num_trials
     % Extract timestamps for the trial
-    timeStamps = TimeStamp(trial, :);
+    timeStamps = wl.TimeStamp(trial, 1:wl.Samples(trial));
     
     % Extract X and Y positions of the robot during the trial
-    x = squeeze(RobotPosition(trial, 1, 1:Samples(trial)));
-    y = squeeze(RobotPosition(trial, 2, 1:Samples(trial)));
+    x = squeeze(wl.RobotPosition(trial, 1, 1:wl.Samples(trial)));
+    y = squeeze(wl.RobotPosition(trial, 2, 1:wl.Samples(trial)));
     
     % Extract target position from TrialData
-    target_pos = WL.TrialData.TargetPosition(trial, 1:2);  % Extracting the (x, y) target position
+    target_pos = wl.WL.TrialData.TargetPosition(trial, 1:2);  % Extracting the (x, y) target position
     
     % Calculate correction relative to the target (in x-direction only)
     finalHandPos = [x(end), y(end)];  % Final hand position
     correctionX(trial) = finalHandPos(1) - target_pos(1);  % Signed correction along the x-axis
     
     % Extract jump distance for the trial
-    jumpDistances(trial) = TrialData.TargetPosition(trial);
+    jumpDistances(trial) = wl.TrialData.JumpDistance(trial);
     
     % Determine if the trial is a fast trial
-    isFastTrial(trial) = strcmp(TrialData.SpeedCue(trial), 'fast');  % Assuming 'SpeedCue' field specifies 'fast' or 'slow'
+    isFastTrial(trial) = strcmp(wl.TrialData.SpeedCue(trial), 'fast');  % Assuming 'SpeedCue' field specifies 'fast' or 'slow'
 end
 
 % Display correction and jump distance for each trial
@@ -50,3 +51,5 @@ grid on;
 
 
 hold off;
+
+

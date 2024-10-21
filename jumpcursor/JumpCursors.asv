@@ -70,7 +70,7 @@ classdef JumpCursors < wl_experiment
             WL.cfg.hasJumped = false;
             WL.cfg.shown = false;
             WL.cfg.jumpIndex = 1;
-            WL.cfg.CursorVisible = fa; % Cursor initially not visible
+            WL.cfg.CursorVisible = true; % Cursor initially not visible
             WL.cfg.TargetVisible = false;
             WL.cfg.JumpTimer = 0;
             WL.Timer.CursorVisibilityTimer = wl_timer;
@@ -103,51 +103,68 @@ classdef JumpCursors < wl_experiment
 
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function display_func(WL, win)
+ if WL.cfg.showInstructions
+                % Set a black background for the instructions screen
+                Screen('FillRect', win, [0 0 0]);
 
-            % if WL.cfg.showInstructions
-            %     % Set a black background for the instructions screen
-            %     Screen('FillRect', win, [0 0 0]);
-            % 
-            %     % Define instructions text
-            %     instructions = ['Welcome to our study!' newline ...
-            %         'In this experiment, you will have fast and slow trials.' newline ...
-            %         'Your goal is to reach the target as accurately as possible.' newline ...
-            %         'You will hear a beep to start each trial.' newline ...
-            %         'Feedback will be provided during practice trials only.' newline ...
-            %         'Press any key to begin!'];
-            % 
-            %     % Display instructions using wl_draw_text
-            %     WL.draw_text(instructions, [0 0 0], 'Scale', 0.5, 'Color', [0 1 0]);
-            % 
-            %     % Flip the screen to show the instructions
-            %     Screen('Flip', win);
-            % 
-            %     % Wait for the participant to press a key before starting
-            %     [keyIsDown, ~, keyCode] = KbCheck;
-            %     if keyIsDown
-            %         WL.cfg.showInstructions = false;  % Turn off instructions
-            %         WL.cfg.showGoodLuck = true;  % Flag to show "Good Luck" message next
-            %     end
-            % 
-            % elseif WL.cfg.showGoodLuck
-            %     % Set a black background for the "Good Luck" screen
-            %     Screen('FillRect', win, [0 0 0]);
-            % 
-            %     % Display "Good Luck!" message
-            %     WL.draw_text('Good Luck!', [0 0 0], 'Scale', 0.7, 'Color', [0 1 0]);
-            % 
-            %     % Flip the screen to show the "Good Luck!" message
-            %     Screen('Flip', win);
-            % 
-            %     % Wait for a moment before starting the experiment
-            %     WaitSecs(1);
-            % 
-            %     % Proceed to the experiment
-            %     WL.cfg.showGoodLuck = false;
-            % 
-            % else
-            %     % Regular experiment display logic (cursor, target, etc.)
+% Rotate the screen by 180 degrees to flip it
+Screen('glPushMatrix', win);
+Screen('glRotate', win, 180, 0, 0, 1); % Rotate by 180 degrees around the z-axis
 
+% Define instructions text
+instructions = ['Welcome to our study!' newline ...
+    'In this experiment, we ask you to make reaching movements from a start to a target at two different paces: fast and slow.' newline ...
+    'Your goal is to reach and stop in the target as accurate as possible in the specified time.' newline ...
+    'Low-pitch corresponds to moving slow, high-pitch to moving fast.' newline ...
+    'Once you’ve reached the target, it will disappear and you can move your hand back to the start.' newline ...
+    'First, we will practice to learn the two different paces. During the practice, a cursor will indicate where your hand is.' newline ...
+    'During the experiment, the cursor won\'t be visible most of the time.' newline ...
+    'Press any key to begin!'];
+
+% Display instructions using DrawFormattedText
+DrawFormattedText(win, instructions, 'center', 'center', [0 1 0]);
+
+% Flip the screen to show the instructions
+Screen('Flip', win);
+
+% Reset the transformation
+Screen('glPopMatrix', win);
+ % Display instructions using wl_draw_text (must be outside of OpenGL context)
+                DrawFormattedText(win, instructions, 'center', 'center', [0 1 0]);
+
+                % Flip the screen to show the instructions
+                Screen('Flip', win);
+
+                % Wait for the participant to press a key before starting
+                % Blocking until key press
+                while true
+                    [keyIsDown, ~, ~] = KbCheck;
+                    if keyIsDown
+                        % Instructions have been read, now proceed
+                        WL.cfg.showInstructions = false;  % Turn off instructions
+                        WL.cfg.showGoodLuck = true;  % Flag to show "Good Luck" message next
+                        KbReleaseWait;  % Wait until key is released to avoid accidental double press
+                        break;
+                    end
+                end
+
+            elseif WL.cfg.showGoodLuck
+                % Set a black background for the "Good Luck" screen
+                Screen('FillRect', win, [0 0 0]);
+
+                % Display "Good Luck!" message
+                DrawFormattedText(win, 'Good Luck!', 'center', 'center', [0 1 0]);
+
+                % Flip the screen to show the "Good Luck!" message
+                Screen('Flip', win);
+
+                % Wait for a moment before starting the experiment
+                WaitSecs(1);
+
+                % Proceed to the experiment
+                WL.cfg.showGoodLuck = false;
+
+            else
                 Screen('BeginOpenGL', win); 
                 v = sqrt(sum(WL.Robot.Velocity .^2));
               if  isfield(WL.Trial, 'TargetPosition') && ~isempty(WL.Trial.TargetPosition);
@@ -225,7 +242,7 @@ classdef JumpCursors < wl_experiment
                 case WL.State.SETUP % Setup details of next trial, but only when robot stationary and active.
                     if all(WL.Robot.Active)
                         WL.cfg.shown = false;
-                        WL.cfg.CursorVisible = true;
+                        WL.cfg.CursorVisible = false;
                         WL.cfg.PositionLog = [];
                         WL.cfg.hasPlayedFourthBeep = false;
                         WL.trial_setup();
@@ -243,7 +260,7 @@ classdef JumpCursors < wl_experiment
                     end
                 case WL.State.START % Start trial.
                     WL.Timer.MovementDurationTimer.Reset();
-                    WL.cfg.CursorVisible = true;
+                    WL.cfg.CursorVisible = false;
                     WL.trial_start();
                     WL.state_next(WL.State.DELAY);
 
