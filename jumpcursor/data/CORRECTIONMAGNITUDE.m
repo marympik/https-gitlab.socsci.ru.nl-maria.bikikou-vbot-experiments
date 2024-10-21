@@ -1,13 +1,12 @@
-% Initialize variables
-num_trials = size(wl.TimeStamp, 1);
+num_trials = size(WL.TrialData, 1);
 correctionX = NaN(1, num_trials);  % Store signed correction in the x-direction
 jumpDistances = NaN(1, num_trials);
 isFastTrial = false(1, num_trials);  % Boolean array to indicate if a trial is fast
 
 for trial = 1:num_trials
     % Extract timestamps for the trial
-    timeStamps = wl.TimeStamp(trial, 1:wl.Samples(trial));
-    
+    timeStamps = WL.TimeStamp(trial, :);
+    timeStamps = timeStamps(timeStamps > 0); % Remove trailing zeros if any
     % Extract X and Y positions of the robot during the trial
     x = squeeze(wl.RobotPosition(trial, 1, 1:wl.Samples(trial)));
     y = squeeze(wl.RobotPosition(trial, 2, 1:wl.Samples(trial)));
