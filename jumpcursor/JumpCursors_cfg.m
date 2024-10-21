@@ -33,7 +33,7 @@ end
 WL.cfg.SensorayAddress = -1;
 WL.cfg.SensorayAnalogChannels = 1:7; % 1-6 is force transducer, 7 is photodiode
 WL.cfg.PhotoDiodePosition = [29.8, 16.8, 0];
-WL.cfg.PhotoDiodeRadius = [0.5];
+WL.cfg.PhotoDiodeRadius = 0.5;
 
 WL.cfg.Debug = 0;
 WL.cfg.CursorRadius = 0.5;
@@ -51,7 +51,7 @@ WL.cfg.ErrorWait = 1.5;
 WL.cfg.TargetDistance = 20;
 WL.cfg.HomePosition = [0 -7 0]';
 WL.cfg.TargetPosition = WL.cfg.HomePosition + [0 WL.cfg.TargetDistance 0]';
-WL.cfg.isPracticeTrial = false;
+WL.cfg.isPracticeTrial = true;
 
 % Define the possible jump distances in meters
 WL.cfg.possibleJumpDistances = [-10,-8, -6, -4,-2, -1, 0, 1, 2, 4, 6, 8, 10];

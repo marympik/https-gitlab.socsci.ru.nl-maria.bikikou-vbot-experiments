@@ -101,63 +101,63 @@ classdef JumpCursors < wl_experiment
 
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function display_func(WL, win)
-            if WL.cfg.showInstructions
-                % Set a black background for the instructions screen
-                Screen('FillRect', win, [0 0 0]);
-
-                % Rotate the screen by 180 degrees to flip it
-                Screen('glPushMatrix', win);
-                Screen('glRotate', win, 180, 0, 0, 1); % Rotate by 180 degrees around the z-axis
-
-                % Define instructions text
-                instructions = ['Welcome to our study!' newline ...
-                    'In this experiment, we ask you to make reaching movements from a start to a target at two different paces: fast and slow.' newline ...
-                    'Your goal is to reach and stop in the target as accurately as possible in the specified time.' newline ...
-                    'Low-pitch corresponds to moving slow, high-pitch to moving fast.' newline ...
-                    'Once you’ve reached the target, it will disappear, and you can move your hand back to the start.' newline ...
-                    'First, we will practice to learn the two different paces. During the practice, a cursor will indicate where your hand is.' newline ...
-                    'During the experiment, the cursor will not be visible most of the time.' newline ...
-                    'Press any key to begin!'];
-
-                % Display instructions using DrawFormattedText
-                DrawFormattedText(win, instructions, 'center', 'center', [0 1 0]);
-
-                % Flip the screen to show the instructions
-                Screen('Flip', win);
-
-                % Reset the transformation
-                Screen('glPopMatrix', win);
-
-                % Wait for the participant to press a key before starting
-                % Blocking until key press
-                while true
-                    [keyIsDown, ~, ~] = KbCheck;
-                    if keyIsDown
-                        % Instructions have been read, now proceed
-                        WL.cfg.showInstructions = false;  % Turn off instructions
-                        WL.cfg.showGoodLuck = true;  % Flag to show "Good Luck" message next
-                        KbReleaseWait;  % Wait until key is released to avoid accidental double press
-                        break;
-                    end
-                end
-
-            elseif WL.cfg.showGoodLuck
-                % Set a black background for the "Good Luck" screen
-                Screen('FillRect', win, [0 0 0]);
-
-                % Display "Good Luck!" message
-                DrawFormattedText(win, 'Good Luck!', 'center', 'center', [0 1 0]);
-
-                % Flip the screen to show the "Good Luck!" message
-                Screen('Flip', win);
-
-                % Wait for a moment before starting the experiment
-                WaitSecs(1);
-
-                % Proceed to the experiment
-                WL.cfg.showGoodLuck = false;
-
-            else
+            % if WL.cfg.showInstructions
+            %     % Set a black background for the instructions screen
+            %     Screen('FillRect', win, [0 0 0]);
+            % 
+            %     % Rotate the screen by 180 degrees to flip it
+            %     Screen('glPushMatrix', win);
+            %     Screen('glRotate', win, 180, 0, 0, 1); % Rotate by 180 degrees around the z-axis
+            % 
+            %     % Define instructions text
+            %     instructions = ['Welcome to our study!' newline ...
+            %         'In this experiment, we ask you to make reaching movements from a start to a target at two different paces: fast and slow.' newline ...
+            %         'Your goal is to reach and stop in the target as accurately as possible in the specified time.' newline ...
+            %         'Low-pitch corresponds to moving slow, high-pitch to moving fast.' newline ...
+            %         'Once you’ve reached the target, it will disappear, and you can move your hand back to the start.' newline ...
+            %         'First, we will practice to learn the two different paces. During the practice, a cursor will indicate where your hand is.' newline ...
+            %         'During the experiment, the cursor will not be visible most of the time.' newline ...
+            %         'Press any key to begin!'];
+            % 
+            %     % Display instructions using DrawFormattedText
+            %     DrawFormattedText(win, instructions, 'center', 'center', [0 1 0]);
+            % 
+            %     % Flip the screen to show the instructions
+            %     Screen('Flip', win);
+            % 
+            %     % Reset the transformation
+            %     Screen('glPopMatrix', win);
+            % 
+            %     % Wait for the participant to press a key before starting
+            %     % Blocking until key press
+            %     while true
+            %         [keyIsDown, ~, ~] = KbCheck;
+            %         if keyIsDown
+            %             % Instructions have been read, now proceed
+            %             WL.cfg.showInstructions = false;  % Turn off instructions
+            %             WL.cfg.showGoodLuck = true;  % Flag to show "Good Luck" message next
+            %             KbReleaseWait;  % Wait until key is released to avoid accidental double press
+            %             break;
+            %         end
+            %     end
+            % 
+            % elseif WL.cfg.showGoodLuck
+            %     % Set a black background for the "Good Luck" screen
+            %     Screen('FillRect', win, [0 0 0]);
+            % 
+            %     % Display "Good Luck!" message
+            %     DrawFormattedText(win, 'Good Luck!', 'center', 'center', [0 1 0]);
+            % 
+            %     % Flip the screen to show the "Good Luck!" message
+            %     Screen('Flip', win);
+            % 
+            %     % Wait for a moment before starting the experiment
+            %     WaitSecs(1);
+            % 
+            %     % Proceed to the experiment
+            %     WL.cfg.showGoodLuck = false;
+            % 
+            % else
                 Screen('BeginOpenGL', win);
                 v = sqrt(sum(WL.Robot.Velocity .^2));
                 if  isfield(WL.Trial, 'TargetPosition') && ~isempty(WL.Trial.TargetPosition);
@@ -215,7 +215,7 @@ classdef JumpCursors < wl_experiment
                 end
                 WL.draw_text(txt, [0 -20 0]);
             end
-        end
+       
 
 
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
