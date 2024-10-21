@@ -48,15 +48,6 @@ title(' Correction vs. Jump Distance (Fast vs. Slow Trials)');
 legend('Fast Trials', 'Slow Trials');
 grid on;
 
-% Perform linear regression for fast and slow trials
-fastCoeffs = polyfit(fastJumpDistances, fastCorrectionX, 1);
-slowCoeffs = polyfit(slowJumpDistances, slowCorrectionX, 1);
 
-% Generate x values for plotting the regression lines
-xFit = linspace(min(jumpDistances), max(jumpDistances), 100);
-
-% Plot regression lines
-plot(xFit, polyval(fastCoeffs, xFit), 'r--', 'LineWidth', 1.5);  % Linear fit for fast trials
-plot(xFit, polyval(slowCoeffs, xFit), 'b--', 'LineWidth', 1.5);  % Linear fit for slow trials
 
 hold off;

@@ -70,7 +70,7 @@ classdef JumpCursors < wl_experiment
             WL.cfg.hasJumped = false;
             WL.cfg.shown = false;
             WL.cfg.jumpIndex = 1;
-            WL.cfg.CursorVisible = false; % Cursor initially not visible
+            WL.cfg.CursorVisible = true; % Cursor initially not visible
             WL.cfg.TargetVisible = false;
             WL.cfg.JumpTimer = 0;
             WL.Timer.CursorVisibilityTimer = wl_timer;
@@ -177,15 +177,15 @@ classdef JumpCursors < wl_experiment
             else
                 % disp(['Feedback not displayed. Timer: ', num2str(WL.Timer.FeedbackTimer.GetTime())]);
             end
-
-            if WL.cfg.hasJumped
-                elapsedTime = WL.Timer.CursorVisibilityTimer.GetTime();
-                if elapsedTime > WL.cfg.CursorVisibilityDuration
-                    if WL.cfg.CursorVisible  % Check to ensure the cursor is currently visible
-                        WL.cfg.CursorVisible = false;  % Make the cursor invisible
-                    end
-                end
-            end
+            % 
+            % if WL.cfg.hasJumped
+            %     elapsedTime = WL.Timer.CursorVisibilityTimer.GetTime();
+            %     if elapsedTime > WL.cfg.CursorVisibilityDuration
+            %         if WL.cfg.CursorVisible  % Check to ensure the cursor is currently visible
+            %             WL.cfg.CursorVisible = false;  % Make the cursor invisible
+            %          end
+            %     end
+            % end
 
             %define when to draw to activate the photodiode
             if (WL.cfg.CursorVisible && WL.State.Current == WL.State.POSTJUMP )
@@ -225,7 +225,7 @@ classdef JumpCursors < wl_experiment
                 case WL.State.SETUP % Setup details of next trial, but only when robot stationary and active.
                     if all(WL.Robot.Active)
                         WL.cfg.shown = false;
-                        WL.cfg.CursorVisible = false;
+                        WL.cfg.CursorVisible = true;
                         WL.cfg.PositionLog = [];
                         WL.cfg.hasPlayedFourthBeep = false;
                         WL.trial_setup();
@@ -243,7 +243,7 @@ classdef JumpCursors < wl_experiment
                     end
                 case WL.State.START % Start trial.
                     WL.Timer.MovementDurationTimer.Reset();
-                    WL.cfg.CursorVisible = false;
+                    WL.cfg.CursorVisible = true;
                     WL.trial_start();
                     WL.state_next(WL.State.DELAY);
 
@@ -310,9 +310,9 @@ classdef JumpCursors < wl_experiment
                 case WL.State.POSTJUMP
                     % Check if 100ms have passed since the jump
                     WL.cfg.hasPlayedFourthBeep = false;
-                    if WL.Timer.CursorVisibilityTimer.GetTime() > 0.05
-                        WL.cfg.CursorVisible = false;
-                    end
+                    % if WL.Timer.CursorVisibilityTimer.GetTime() > 0.05
+                    %     WL.cfg.CursorVisible = false;
+                    % end
 
                     if WL.movement_finished()
                         WL.cfg.movementDurationTime = WL.Timer.MovementDurationTimer.GetTime();

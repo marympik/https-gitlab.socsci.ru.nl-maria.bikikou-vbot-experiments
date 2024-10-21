@@ -54,7 +54,7 @@ WL.cfg.TargetPosition = WL.cfg.HomePosition + [0 WL.cfg.TargetDistance 0]';
 WL.cfg.isPracticeTrial = false;
 
 % Define the possible jump distances in meters
-WL.cfg.possibleJumpDistances = [-10,-8, -6, -5,-4, -2, 0, 2, 4, 5, 6, 8, 10];
+WL.cfg.possibleJumpDistances = [-10,-8, -6, -4,-2, -1, 0, 1, 2, 4, 6, 8, 10];
 WL.cfg.VelocityThreshold = 1;
 
 WL.cfg.plot_timing = 0;
