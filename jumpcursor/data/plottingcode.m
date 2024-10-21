@@ -1,5 +1,5 @@
 % Load the data
-wl = load("10.mat");
+wl = load("pilot04.mat");
 
 
 
@@ -54,7 +54,7 @@ wl = load("10.mat");
 % end
 % 
 % 
-trial_number = 33; % Specify the trial number
+trial_number = 78; % Specify the trial number
 % Check if trial_number is valid
 if trial_number < 1 || trial_number > size(wl.RobotPosition, 1)
     error('Invalid trial number');
@@ -364,7 +364,7 @@ hold off;
 
 %Movementduration finally
 
-trial_number = 33;
+trial_number = 78;
 
 % Extract timestamps for the trial
 timeStamps = wl.TimeStamp(trial_number, 1:wl.Samples(trial_number));

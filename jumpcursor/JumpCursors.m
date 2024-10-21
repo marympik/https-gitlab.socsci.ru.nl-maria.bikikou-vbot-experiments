@@ -477,6 +477,10 @@ classdef JumpCursors < wl_experiment
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function generate_feedback(WL)
             if WL.cfg.isPracticeTrial
+
+              WL.cfg.CursorVisible=true;
+
+              WL.cfg.hasJumped=false;
                 currentSpeedCue = WL.TrialData.SpeedCue{WL.TrialNumber};  % Get the current trial's speed cue
                 if strcmp(currentSpeedCue, 'fast')
                     targetDuration = WL.cfg.targetDurationFast;  % Set for fast trials

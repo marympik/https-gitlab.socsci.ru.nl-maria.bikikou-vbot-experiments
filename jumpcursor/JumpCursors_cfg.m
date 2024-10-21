@@ -51,10 +51,10 @@ WL.cfg.ErrorWait = 1.5;
 WL.cfg.TargetDistance = 20;
 WL.cfg.HomePosition = [0 -7 0]';
 WL.cfg.TargetPosition = WL.cfg.HomePosition + [0 WL.cfg.TargetDistance 0]';
-WL.cfg.isPracticeTrial = true;
+WL.cfg.isPracticeTrial = false;
 
 % Define the possible jump distances in meters
-WL.cfg.possibleJumpDistances = [-10,-8, -6, -4,-2, -1, 0, 1, 2, 4, 6, 8, 10];
+WL.cfg.possibleJumpDistances = [-20,-15, -10, -8,-6, -4, 0, 4, 6, 8, 10, 15, 20];
 WL.cfg.VelocityThreshold = 1;
 
 WL.cfg.plot_timing = 0;
@@ -113,7 +113,7 @@ end
 % JumpDistances.
 
 JumpDistanceCount = 13;
-RepetitionCount = 4;
+RepetitionCount = 5;
 PracticeRepetitionCount = 13;
 JumpDistance = num2cell([WL.cfg.possibleJumpDistances]); %  Targets evenly spaced around a circle.
 MovementSpeed = num2cell([{'slow'},{'fast'}]);
