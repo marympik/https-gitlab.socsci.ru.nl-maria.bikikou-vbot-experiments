@@ -435,3 +435,4 @@ if ~isempty(movementStartIdx) && ~isempty(movementEndIdx)
     disp(['Total Movement Duration: ', num2str(movementDuration), ' seconds']);
 end
 
+plot(TimeStamp(1,:),squeeze(RobotPosition(1,2,:)),TimeStamp(1,:),squeeze(SensorayAnalogInputVolts(1,7,:)));
