@@ -52,4 +52,33 @@ grid on;
 
 hold off;
 
+% Separate fast and slow trials
+fastJumpDistances = jumpDistances(isFastTrial);
+fastCorrectionX = correctionX(isFastTrial);
+slowJumpDistances = jumpDistances(~isFastTrial);
+slowCorrectionX = correctionX(~isFastTrial);
+
+% Verify the sizes of arrays
+disp('Fast Trials Corrections:');
+disp(fastCorrectionX);
+disp('Slow Trials Corrections:');
+disp(slowCorrectionX);
+% Combine data for all trials
+corrections = [fastCorrectionX, slowCorrectionX]';
+jumpDistancesCombined = [fastJumpDistances, slowJumpDistances]';
+
+% Define the speed labels for each correction
+speedLabels = [repmat({'Fast'}, length(fastCorrectionX), 1); ...
+               repmat({'Slow'}, length(slowCorrectionX), 1)];
+
+% Convert speed labels to categorical data type
+speedFactor = categorical(speedLabels);
+
+% Perform the ANOVA
+[p, tbl, stats] = anovan(corrections, {speedFactor, jumpDistancesCombined}, ...
+                         'model', 'interaction', 'varnames', {'Speed', 'JumpDistance'});
+
+% Display ANOVA results
+disp('ANOVA Results:');
+disp(tbl);
 
