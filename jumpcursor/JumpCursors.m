@@ -78,7 +78,7 @@ classdef JumpCursors < wl_experiment
             WL.cfg.targetPosition(2) = WL.cfg.targetPosition(2) + WL.cfg.TargetDistance; % Moving 20 units along y-axis
             WL.cfg.hasPlayedFourthBeep = false;
             WL.cfg.hasPlayedThreeBeeps = false;
-            WL.cfg.targetDurationFast = 0.5;  % example value in seconds for fast movements
+            WL.cfg.targetDurationFast = 0.8;  % example value in seconds for fast movements
             WL.cfg.targetDurationSlow = 1.2;  % example value in seconds for slow movements
             WL.cfg.tolerance = 0.3;  % tolerance in seconds
             WL.cfg.feedbackMessage = '';  % Initialize as empty
