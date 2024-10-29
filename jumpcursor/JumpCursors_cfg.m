@@ -31,9 +31,9 @@ end
 
 % % settings for the photodiode
 WL.cfg.SensorayAddress = -1;
-WL.cfg.SensorayAnalogChannels = 1:7; % 1-6 is force transducer, 7 is photodiode
-WL.cfg.PhotoDiodePosition = [29.8, 16.8, 0];
-WL.cfg.PhotoDiodeRadius = 0.5;
+WL.cfg.SensorayAnalogChannels = 0:9; % 0-5 is force transducer, 6 is photodiode
+WL.cfg.PhotoDiodePosition = [27.3, 14.3, 0]; % Maria and Luc checked this position and radius, such that it is underneath the photodiode with the Asus screen
+WL.cfg.PhotoDiodeRadius = 1;
 
 WL.cfg.Debug = 0;
 WL.cfg.CursorRadius = 0.5;
