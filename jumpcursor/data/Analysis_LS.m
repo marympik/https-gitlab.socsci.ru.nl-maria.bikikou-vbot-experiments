@@ -1,6 +1,6 @@
 clear all; close all;
 
-load('pilot04.mat')
+wl = load('test.mat');
 
 pre_samples = 400;
 post_samples = 0;

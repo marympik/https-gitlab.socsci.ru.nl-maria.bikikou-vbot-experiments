@@ -49,7 +49,7 @@ WL.cfg.TrialDelay = 0;
 WL.cfg.FinishDelay = 0.1;
 WL.cfg.ErrorWait = 1.5;
 WL.cfg.TargetDistance = 20;
-WL.cfg.HomePosition = [0 -7 0]';
+WL.cfg.HomePosition = [0 -10 0]';
 WL.cfg.TargetPosition = WL.cfg.HomePosition + [0 WL.cfg.TargetDistance 0]';
 WL.cfg.isPracticeTrial = false;
 
@@ -113,7 +113,7 @@ end
 % JumpDistances.
 
 JumpDistanceCount = 13;
-RepetitionCount = 3;
+RepetitionCount = 1;
 PracticeRepetitionCount = 13;
 JumpDistance = num2cell([WL.cfg.possibleJumpDistances]); %  Targets evenly spaced around a circle.
 MovementSpeed = num2cell([{'slow'},{'fast'}]);

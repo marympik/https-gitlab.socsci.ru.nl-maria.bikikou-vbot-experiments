@@ -1,5 +1,5 @@
 % Load the data
-wl = load("20cmmeactualexper.mat");
+wl = load("test.mat");
 
 
 
@@ -52,45 +52,45 @@ wl = load("20cmmeactualexper.mat");
 % 
 %     hold off;
 % end
-% 
-% 
-% trial_number = 3; % Specify the trial number
-% % Check if trial_number is valid
-% if trial_number < 1 || trial_number > size(wl.RobotPosition, 1)
-%     error('Invalid trial number');
-% end
-% 
-% % Extract X and Y positions of the robot during the trial
-% x = squeeze(wl.RobotPosition(trial_number, 1, 1:wl.Samples(trial_number)));
-% y = squeeze(wl.RobotPosition(trial_number, 2, 1:wl.Samples(trial_number)));
-% 
-% % Plotting trajectory for hand and cursor
-% figure;
-% plot(x, y, 'b', 'LineWidth', 1.5, 'DisplayName', 'Hand Trajectory');
-% hold on;
-% xlabel('X Position (cm)');
-% ylabel('Y Position (cm)');
-% title(['Trajectory for Trial ', num2str(trial_number), ' - Jump Distance: ', num2str(wl.TrialData.JumpDistance(trial_number)), ' cm']);
-% 
-% % Mark start position
-% start_pos = wl.WL.cfg.HomePosition(1:2);  % Extracting the (x, y) home position
-% plot(start_pos(1), start_pos(2), 'ro', 'MarkerSize', 10, 'LineWidth', 2, 'DisplayName', 'Start Position');
-% 
-% % Mark target position
-% target_pos = wl.WL.cfg.TargetPosition(1:2);  % Extracting the (x, y) target position
-% plot(target_pos(1), target_pos(2), 'gx', 'MarkerSize', 10, 'LineWidth', 2, 'DisplayName', 'Target Position');
-% 
-% % Plot cursor jump as a step function
-% jumpTimeIdx = find(wl.State(trial_number, :) == wl.WL.State.CURSORJUMP, 1, 'first');
-% if ~isempty(jumpTimeIdx)
-%     cursorPositionX = [x(1:jumpTimeIdx); x(jumpTimeIdx); x(jumpTimeIdx:end) + wl.TrialData.JumpDistance(trial_number)];
-%     cursorPositionY = [y(1:jumpTimeIdx); y(jumpTimeIdx); y(jumpTimeIdx:end)];
-%     stairs(cursorPositionX, cursorPositionY, 'r--', 'LineWidth', 1.5, 'DisplayName', 'Cursor Trajectory (Step Function)');
-% end
-% 
-% legend('Hand Trajectory', 'Start Position', 'Target Position', 'Cursor Trajectory (Step Function)');
-% grid on;
-% hold off;
+
+
+trial_number = 4; % Specify the trial number
+% Check if trial_number is valid
+if trial_number < 1 || trial_number > size(wl.RobotPosition, 1)
+    error('Invalid trial number');
+end
+
+% Extract X and Y positions of the robot during the trial
+x = squeeze(wl.RobotPosition(trial_number, 1, 1:wl.Samples(trial_number)));
+y = squeeze(wl.RobotPosition(trial_number, 2, 1:wl.Samples(trial_number)));
+
+% Plotting trajectory for hand and cursor
+figure;
+plot(x, y, 'b', 'LineWidth', 1.5, 'DisplayName', 'Hand Trajectory');
+hold on;
+xlabel('X Position (cm)');
+ylabel('Y Position (cm)');
+title(['Trajectory for Trial ', num2str(trial_number), ' - Jump Distance: ', num2str(wl.TrialData.JumpDistance(trial_number)), ' cm']);
+
+% Mark start position
+start_pos = wl.WL.cfg.HomePosition(1:2);  % Extracting the (x, y) home position
+plot(start_pos(1), start_pos(2), 'ro', 'MarkerSize', 10, 'LineWidth', 2, 'DisplayName', 'Start Position');
+
+% Mark target position
+target_pos = wl.WL.cfg.TargetPosition(1:2);  % Extracting the (x, y) target position
+plot(target_pos(1), target_pos(2), 'gx', 'MarkerSize', 10, 'LineWidth', 2, 'DisplayName', 'Target Position');
+
+% Plot cursor jump as a step function
+jumpTimeIdx = find(wl.State(trial_number, :) == wl.WL.State.CURSORJUMP, 1, 'first');
+if ~isempty(jumpTimeIdx)
+    cursorPositionX = [x(1:jumpTimeIdx); x(jumpTimeIdx); x(jumpTimeIdx:end) + wl.TrialData.JumpDistance(trial_number)];
+    cursorPositionY = [y(1:jumpTimeIdx); y(jumpTimeIdx); y(jumpTimeIdx:end)];
+    stairs(cursorPositionX, cursorPositionY, 'r--', 'LineWidth', 1.5, 'DisplayName', 'Cursor Trajectory (Step Function)');
+end
+
+legend('Hand Trajectory', 'Start Position', 'Target Position', 'Cursor Trajectory (Step Function)');
+grid on;
+hold off;
 
 
 % %Define the trial number (ensure it's available for subsequent use)
