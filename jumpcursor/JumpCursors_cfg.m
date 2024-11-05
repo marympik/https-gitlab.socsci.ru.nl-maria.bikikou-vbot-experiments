@@ -51,11 +51,20 @@ WL.cfg.ErrorWait = 1.5;
 WL.cfg.TargetDistance = 20;
 WL.cfg.HomePosition = [0 -10 0]';
 WL.cfg.TargetPosition = WL.cfg.HomePosition + [0; WL.cfg.TargetDistance; 0];  % Center target (20 cm above home position)
+% Define the total number of trials and shifted target count
+totalTrials = 200;
+targetShiftCount = round(totalTrials * 0.1); % 10% of trials will have a shifted target
+
+% Randomly pick trials to shift the target
+shiftedTrials = randperm(totalTrials, targetShiftCount);
+
+% Store the indices for shifted target trials
+WL.cfg.shiftedTrials = shiftedTrials;
 
 WL.cfg.isPracticeTrial = false;
 
 % Define the possible jump distances in meters
-WL.cfg.possibleJumpDistances = [-20,-15, -10, -8,-5, -2, 0, 2, 5, 8, 10, 15, 20];
+WL.cfg.possibleJumpDistances = [-6,-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6];
 WL.cfg.VelocityThreshold = 2;
 
 WL.cfg.plot_timing = 0;

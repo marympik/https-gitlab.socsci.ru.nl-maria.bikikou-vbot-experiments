@@ -50,17 +50,21 @@ WL.cfg.FinishDelay = 0.1;
 WL.cfg.ErrorWait = 1.5;
 WL.cfg.TargetDistance = 20;
 WL.cfg.HomePosition = [0 -10 0]';
-WL.cfg.TargetPositions = [ ...
-    WL.cfg.HomePosition + [0; WL.cfg.TargetDistance; 0],  % Center target (20 cm above home position)
-    WL.cfg.HomePosition + [-10; WL.cfg.TargetDistance; 0], % Left target (10 cm to the left and 20 cm above home position)
-    WL.cfg.HomePosition + [10; WL.cfg.TargetDistance; 0]   % Right target (10 cm to the right and 20 cm above home position)
-];
+WL.cfg.TargetPosition = WL.cfg.HomePosition + [0; WL.cfg.TargetDistance; 0];  % Center target (20 cm above home position)
+% Define the total number of trials and shifted target count
+totalTrials = 200;
+targetShiftCount = round(totalTrials * 0.1); % 10% of trials will have a shifted target
 
-WL.cfg.TargetIndexCount = size(WL.cfg.TargetPositions, 2);
+% Randomly pick trials to shift the target
+shiftedTrials = randperm(totalTrials, targetShiftCount);
+
+% Store the indices for shifted target trials
+WL.cfg.shiftedTrials = shiftedTrials;
+
 WL.cfg.isPracticeTrial = false;
 
 % Define the possible jump distances in meters
-WL.cfg.possibleJumpDistances = [-20,-15, -10, -8,-5, -2, 0, 2, 5, 8, 10, 15, 20];
+WL.cfg.possibleJumpDistances = [-6,-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6];
 WL.cfg.VelocityThreshold = 2;
 
 WL.cfg.plot_timing = 0;
@@ -121,20 +125,16 @@ end
 % JumpDistances.
 
 JumpDistanceCount = 13;
-RepetitionCount = 1;
+RepetitionCount = 5;
 PracticeRepetitionCount = 13;
-TargetCount = 3;
 JumpDistance = num2cell([WL.cfg.possibleJumpDistances]); %  Targets evenly spaced around a circle.
 MovementSpeed = num2cell([{'slow'},{'fast'}]);
-Targets = num2cell ([WL.cfg.TargetPositions]);
 WL.cfg.JumpDistance = JumpDistance;
 WL.cfg.SpeedCue = MovementSpeed;
-WL.cfg.TargetPositions = Targets;
 
 
 SlowJumps.Trial.Index.JumpDistance = [ 1:JumpDistanceCount ];
 SlowJumps.Trial.Index.SpeedCue = [ones(1,JumpDistanceCount)];
-SlowJumps.Trial.Index.Targets
 SlowJumps.Permute = true;
 
 
@@ -156,12 +156,12 @@ if WL.cfg.isPracticeTrial
 else
     PracticeTrials = [];  % No practice trials if it's not a practice phase
 end
-
 if mod(participantNumber, 2) == 1
     T = parse_tree(RepetitionCount*S + RepetitionCount*F);
 else
     T = parse_tree(RepetitionCount*F + RepetitionCount*S);
 end
+
 WL.TrialData = T;
 WL.Trial.CorrectionMagnitude = nan(height(WL.TrialData), 1);
 WL.Trial.MovementDurationTime = nan(height(WL.TrialData), 1);

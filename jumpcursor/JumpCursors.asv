@@ -24,7 +24,7 @@ classdef JumpCursors < wl_experiment
                 % Set up S826 analog input and digital output channels.
                  WL.Sensoray = wl_sensoray(WL.cfg.SensorayAddress); % Address should be -1 if used with a robot.
                  ok = WL.Sensoray.AnalogInputSetup(WL.cfg.SensorayAnalogChannels);
-                WL.Hardware = wl_hardware(WL.Robot  ); % Initialize hardware, WL.Sensoray
+                WL.Hardware = wl_hardware(WL.Robot , WL.Sensoray ); % Initialize hardware, WL.Sensoray
                 ok = WL.Hardware.Start();
 
                 
@@ -213,6 +213,8 @@ classdef JumpCursors < wl_experiment
                 WL.trial_abort('Handle Switch',WL.State.SETUP);
             end
 
+
+
             switch WL.State.Current % State processing.
 
                 case WL.State.INITIALIZE % Initialization state.
@@ -220,17 +222,29 @@ classdef JumpCursors < wl_experiment
                     WL.cfg.hasJumped = false;
                     WL.Timer.Paradigm.ExperimentTimer.Reset;
                     WL.state_next(WL.State.SETUP);
-
+                    
 
                 case WL.State.SETUP % Setup details of next trial, but only when robot stationary and active.
                     if all(WL.Robot.Active)
+                      % if ismember(WL.TrialNumber, WL.cfg.CursorVisibleTrials)
+                      %   WL.cfg.CursorVisible = true;  % Cursor should be visible throughout this block
+                      % else
+                      %   WL.cfg.CursorVisible = false;  % Default setting for other trials
+                      % end
+
+                     
                         WL.cfg.CursorPosition = WL.Robot.Position;
                         WL.cfg.shown = false;
-                        WL.cfg.CursorVisible = true;
+                        WL.cfg.CursorVisible = false;
                         WL.cfg.PositionLog = [];
                         WL.cfg.hasPlayedFourthBeep = false;
                         WL.trial_setup();
                         WL.state_next(WL.State.HOME);
+                         WL.TrialNumber = WL.TrialNumber + 1;
+                         if WL.TrialNumber <= height(WL.TrialData)
+                           % Call the function to determine if target should be shifted
+                           WL = random_target_shift(WL);
+                         end
                     end
 
                 case WL.State.HOME % Start trial when robot in home position (and stationary and active).
@@ -238,16 +252,7 @@ classdef JumpCursors < wl_experiment
                         WL.cfg.CursorVisible = true;
                         WL.cfg.TargetVisible = true;
                     end
-                  
-                    if mod(WL.TrialNumber, 10) == 0 && ~WL.cfg.isTargetShifted
-                        WL = random_target_shift(WL);
-                        WL.cfg.isTargetShifted = true; % Set the flag to indicate the shift
-                    elseif mod(WL.TrialNumber, 10) ~= 0 && WL.cfg.isTargetShifted
-                        % Reset to the original target position for normal trials after the shift
-                        WL.cfg.TargetPosition = WL.cfg.HomePosition + [0, WL.cfg.TargetDistance, 0]';
-                        WL.cfg.TargetVisible = true; % Ensure the target is visible
-                        WL.cfg.isTargetShifted = false; % Reset the flag to indicate that the target is back to normal
-                    end
+
                     if (WL.robot_stationary() &&  WL.robot_home() && all(WL.Robot.Active))
                         % WL.cfg.hasJumped = false;
                         WL.state_next(WL.State.START);
@@ -302,6 +307,9 @@ classdef JumpCursors < wl_experiment
                 case WL.State.MOVING
                     WL.cfg.CursorPosition = WL.Robot.Position; % Update cursor position continuously
                     if WL.cfg.isPracticeTrial
+                      WL.cfg.hasjumped=true;
+                      
+
                     else
                         % Regular behavior for experimental trials
                     end
@@ -312,7 +320,7 @@ classdef JumpCursors < wl_experiment
                     end
                 case WL.State.CURSORJUMP
                     if ~WL.cfg.hasJumped
-                        WL.cfg.CursorVisible = false;
+                        WL.cfg.CursorVisible = true;
                         WL.cfg.hasJumped = true;
                         WL.Timer.CursorVisibilityTimer.Reset;
                         WL.state_next(WL.State.POSTJUMP);
@@ -322,9 +330,9 @@ classdef JumpCursors < wl_experiment
                     % Check if 100ms have passed since the jump
                     WL.cfg.hasPlayedFourthBeep = false;
                     if WL.Timer.CursorVisibilityTimer.GetTime() > 0.1
-                        WL.cfg.CursorVisible = true;
+                        WL.cfg.CursorVisible = false;
                     end
-
+                    
                     if WL.movement_finished()
                         WL.cfg.movementDurationTime = WL.Timer.MovementDurationTimer.GetTime();
                         WL.generate_feedback();  % This will store feedback message and color
@@ -443,7 +451,7 @@ classdef JumpCursors < wl_experiment
 
         end
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        function miss_trial_func(WL,MissTrialType)
+        function miss_trial_func(WL,~)
             ok = WL.Robot.RampDown();
             WL.cfg.MissTrial=1;
             if  ~wl_trial_save(WL)   % Save the data for WL trial.
@@ -525,19 +533,26 @@ classdef JumpCursors < wl_experiment
         end
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function WL = random_target_shift(WL)
+          % If the current trial number is part of the pre-defined shiftedTrials
+          if ismember(WL.TrialNumber, WL.cfg.shiftedTrials)
             % Randomize left or right target position
-            shiftDistance = 5; % cm shift left or right
+            shiftDistance = 5; % Shift distance in cm
             if rand < 0.5
-                shiftDistance = -shiftDistance; % Shift left if condition is met
+              shiftDistance = -shiftDistance; % Shift left with 50% probability
             end
 
-            % Update target position with the shift
+            % Update target position for shifted trials
             WL.cfg.TargetPosition = WL.cfg.HomePosition + [shiftDistance, WL.cfg.TargetDistance, 0]';
-            WL.cfg.TargetVisible = true; % Ensure the target remains visible after shifting
-            WL.cfg.JumpDistance = 0; 
 
-            % Debug log (optional)
-            disp(['Target shifted to new position: ', mat2str(WL.cfg.TargetPosition)]);
+            % Update properties for shifted trials
+            WL.cfg.CursorVisible = true;  % Cursor should be visible for shifted trials
+            WL.TrialData.JumpDistance(WL.TrialNumber) = 0;  % No jump for shifted trials
+          else
+            % If it's not a shifted trial, ensure the target position is reset to default
+            WL.cfg.TargetPosition = WL.cfg.HomePosition + [0, WL.cfg.TargetDistance, 0]';
+            
+          end
         end
+
     end
 end
