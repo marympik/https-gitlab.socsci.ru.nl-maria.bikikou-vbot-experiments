@@ -24,7 +24,7 @@ classdef JumpCursors < wl_experiment
                 % Set up S826 analog input and digital output channels.
                  WL.Sensoray = wl_sensoray(WL.cfg.SensorayAddress); % Address should be -1 if used with a robot.
                  ok = WL.Sensoray.AnalogInputSetup(WL.cfg.SensorayAnalogChannels);
-                WL.Hardware = wl_hardware(WL.Robot ,  WL.Sensoray ); % Initialize hardware, 
+                WL.Hardware = wl_hardware(WL.Robot  ); % Initialize hardware, WL.Sensoray
                 ok = WL.Hardware.Start();
 
                 
@@ -68,7 +68,7 @@ classdef JumpCursors < wl_experiment
             WL.cfg.hasJumped = false;
             WL.cfg.shown = false;
             WL.cfg.jumpIndex = 1;
-            WL.cfg.CursorVisible = true; % Cursor initially not visible
+            WL.cfg.CursorVisible = false; % Cursor initially not visible
             WL.cfg.TargetVisible = false;
             WL.cfg.JumpTimer = 0;
             WL.Timer.CursorVisibilityTimer = wl_timer;
@@ -90,6 +90,8 @@ classdef JumpCursors < wl_experiment
             WL.cfg.movementDuration = WL.Timer.MovementDurationTimer.GetTime();
             WL.cfg.showInstructions = true;
             WL.cfg.showGoodLuck = true;
+            WL.cfg.isTargetShifted = false;
+
 
         end
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -146,71 +148,61 @@ classdef JumpCursors < wl_experiment
           %   WL.cfg.showGoodLuck = false;
           % 
           % else
-            Screen('BeginOpenGL', win);
-            v = sqrt(sum(WL.Robot.Velocity .^2));
-            if  isfield(WL.Trial, 'TargetPosition') && ~isempty(WL.Trial.TargetPosition);
-              wl_draw_sphere(WL.Trial.TargetPosition + [0 0 -2]', WL.cfg.TargetRadius, [1 1 0], 'Alpha', 0.7);
-            end
-        
-
-            % Determine cursor position based on trial type
-            if WL.cfg.isPracticeTrial
-              cursorPos = WL.Robot.Position;   % Set cursor position to robot position for practice
-              WL.cfg.CursorVisible = true;     % Ensure cursor is visible during practice
-            else
-              cursorPos = WL.Robot.Position + [WL.cfg.hasJumped * WL.Trial.JumpDistance, 0, 0]';
-            end
-
-            % Draw the cursor if it should be visible
-            if WL.cfg.CursorVisible
-              disp('Drawing cursor');  % Debug message to confirm drawing
-              wl_draw_sphere(cursorPos, WL.cfg.CursorRadius, [1 0 0]);  % Red visible cursor
-            else
-              disp('Cursor not visible');  % Debug message if not visible
-            end
-
-            if WL.cfg.TargetVisible
-              wl_draw_sphere(WL.cfg.TargetPosition + [0 0 -2]', WL.cfg.TargetRadius, [1 1 0], 'Alpha', 0.7);
-              %  else
-              % wl_draw_sphere(WL.Trial.TargetPosition + [0 0 -2]', WL.cfg.TargetRadius, [1 1 0], 'Alpha', 0.7);
-            end
-
-            % Always draw the home position
-            wl_draw_sphere(WL.cfg.HomePosition + [0 0 -2]', WL.cfg.HomeRadius, [0 1 1], 'Alpha', 0.7);
-
-            if WL.cfg.isPracticeTrial && ~isempty(WL.cfg.feedbackMessage) && WL.Timer.FeedbackTimer.GetTime() < 1  % Extend to 5 seconds for testing
-              WL.draw_text(WL.cfg.feedbackMessage, [0 10 0], 'Scale', 0.7);
-            else
-              % disp(['Feedback not displayed. Timer: ', num2str(WL.Timer.FeedbackTimer.GetTime())]);
-            end
-            %
-            if WL.cfg.hasJumped
-              elapsedTime = WL.Timer.CursorVisibilityTimer.GetTime();
-              if elapsedTime > WL.cfg.CursorVisibilityDuration
-                if WL.cfg.CursorVisible  % Check to ensure the cursor is currently visible
-                  WL.cfg.CursorVisible = true;  % Make the cursor invisible
+          Screen('BeginOpenGL', win);
+                v = sqrt(sum(WL.Robot.Velocity .^2));
+                if  isfield(WL.Trial, 'TargetPosition') && ~isempty(WL.Trial.TargetPosition);
+                    wl_draw_sphere(WL.Trial.TargetPosition + [0 0 -2]', WL.cfg.TargetRadius, [1 1 0], 'Alpha', 0.7);
                 end
-              end
+
+                cursorPos = WL.Robot.Position + [WL.cfg.hasJumped * WL.Trial.JumpDistance, 0, 0]';
+                if WL.cfg.CursorVisible
+                    % red visible
+                    wl_draw_sphere(cursorPos, WL.cfg.CursorRadius, [1 0 0]);
+                end
+
+                if WL.cfg.TargetVisible
+                    wl_draw_sphere(WL.cfg.TargetPosition + [0 0 -2]', WL.cfg.TargetRadius, [1 1 0], 'Alpha', 0.7);
+                    %  else
+                    % wl_draw_sphere(WL.Trial.TargetPosition + [0 0 -2]', WL.cfg.TargetRadius, [1 1 0], 'Alpha', 0.7);
+                end
+
+                % Always draw the home position
+                wl_draw_sphere(WL.cfg.HomePosition + [0 0 -2]', WL.cfg.HomeRadius, [0 1 1], 'Alpha', 0.7);
+
+                if WL.cfg.isPracticeTrial && ~isempty(WL.cfg.feedbackMessage) && WL.Timer.FeedbackTimer.GetTime() < 1  % Extend to 5 seconds for testing
+                    WL.draw_text(WL.cfg.feedbackMessage, [0 10 0], 'Scale', 0.7);
+                else
+                    % disp(['Feedback not displayed. Timer: ', num2str(WL.Timer.FeedbackTimer.GetTime())]);
+                end
+                %
+                if WL.cfg.hasJumped
+                    elapsedTime = WL.Timer.CursorVisibilityTimer.GetTime();
+                    if elapsedTime > WL.cfg.CursorVisibilityDuration
+                        if WL.cfg.CursorVisible  % Check to ensure the cursor is currently visible
+                            WL.cfg.CursorVisible = false;  % Make the cursor invisible
+                        end
+                    end
+                end
+
+                %define when to draw to activate the photodiode
+                if (WL.cfg.CursorVisible && WL.State.Current == WL.State.POSTJUMP )
+                    wl_draw_circle(WL.cfg.PhotoDiodePosition', WL.cfg.PhotoDiodeRadius, 0, [1 1 1]);
+                end
+
+                Screen('EndOpenGL', win);
+                % Display text information
+                if all(WL.Robot.Active)
+                    if WL.State.Current == WL.State.HOME
+                        txt = 'Move to Start Position';
+                    else
+                        txt = sprintf('Movement %i of %i', ceil(WL.TrialNumber / 2), ceil(rows(WL.TrialData) / 2));
+                    end
+                else
+                    txt = 'Handle Switch';
+                end
+                WL.draw_text(txt, [0 -20 0]);
             end
 
-            %define when to draw to activate the photodiode
-            if (WL.cfg.CursorVisible && WL.State.Current == WL.State.POSTJUMP )
-              wl_draw_circle(WL.cfg.PhotoDiodePosition', WL.cfg.PhotoDiodeRadius, 0, [1 1 1]);
-            end
-
-            Screen('EndOpenGL', win);
-            % Display text information
-            if all(WL.Robot.Active)
-              if WL.State.Current == WL.State.HOME
-                txt = 'Move to Start Position';
-              else
-                txt = sprintf('Movement %i of %i', ceil(WL.TrialNumber / 2), ceil(rows(WL.TrialData) / 2));
-              end
-            else
-              txt = 'Handle Switch';
-            end
-            WL.draw_text(txt, [0 -20 0]);
-          end
        
 
 
@@ -246,13 +238,23 @@ classdef JumpCursors < wl_experiment
                         WL.cfg.CursorVisible = true;
                         WL.cfg.TargetVisible = true;
                     end
+                  
+                    if mod(WL.TrialNumber, 10) == 0 && ~WL.cfg.isTargetShifted
+                        WL = random_target_shift(WL);
+                        WL.cfg.isTargetShifted = true; % Set the flag to indicate the shift
+                    elseif mod(WL.TrialNumber, 10) ~= 0 && WL.cfg.isTargetShifted
+                        % Reset to the original target position for normal trials after the shift
+                        WL.cfg.TargetPosition = WL.cfg.HomePosition + [0, WL.cfg.TargetDistance, 0]';
+                        WL.cfg.TargetVisible = true; % Ensure the target is visible
+                        WL.cfg.isTargetShifted = false; % Reset the flag to indicate that the target is back to normal
+                    end
                     if (WL.robot_stationary() &&  WL.robot_home() && all(WL.Robot.Active))
                         % WL.cfg.hasJumped = false;
                         WL.state_next(WL.State.START);
                     end
                 case WL.State.START % Start trial.
                     WL.Timer.MovementDurationTimer.Reset();
-                    WL.cfg.CursorVisible = true;
+                    WL.cfg.CursorVisible = false;
                     WL.trial_start();
                     WL.state_next(WL.State.DELAY);
 
@@ -310,7 +312,7 @@ classdef JumpCursors < wl_experiment
                     end
                 case WL.State.CURSORJUMP
                     if ~WL.cfg.hasJumped
-                        WL.cfg.CursorVisible = true;
+                        WL.cfg.CursorVisible = false;
                         WL.cfg.hasJumped = true;
                         WL.Timer.CursorVisibilityTimer.Reset;
                         WL.state_next(WL.State.POSTJUMP);
@@ -520,6 +522,21 @@ classdef JumpCursors < wl_experiment
             % Check if the cursor has reached or surpassed the fixed distance along the y-axis
             flag = current_distance_y >= fixed_distance;
 
+        end
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        function WL = random_target_shift(WL)
+            % Randomize left or right target position
+            shiftDistance = 5; % cm shift left or right
+            if rand < 0.5
+                shiftDistance = -shiftDistance; % Shift left if condition is met
+            end
+
+            % Update target position with the shift
+            WL.cfg.TargetPosition = WL.cfg.HomePosition + [shiftDistance, WL.cfg.TargetDistance, 0]';
+            WL.cfg.TargetVisible = true; % Ensure the target remains visible after shifting
+
+            % Debug log (optional)
+            disp(['Target shifted to new position: ', mat2str(WL.cfg.TargetPosition)]);
         end
     end
 end

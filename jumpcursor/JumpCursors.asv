@@ -24,7 +24,7 @@ classdef JumpCursors < wl_experiment
                 % Set up S826 analog input and digital output channels.
                  WL.Sensoray = wl_sensoray(WL.cfg.SensorayAddress); % Address should be -1 if used with a robot.
                  ok = WL.Sensoray.AnalogInputSetup(WL.cfg.SensorayAnalogChannels);
-                WL.Hardware = wl_hardware(WL.Robot ,  WL.Sensoray ); % Initialize hardware, 
+                WL.Hardware = wl_hardware(WL.Robot  ); % Initialize hardware, WL.Sensoray
                 ok = WL.Hardware.Start();
 
                 
@@ -90,6 +90,8 @@ classdef JumpCursors < wl_experiment
             WL.cfg.movementDuration = WL.Timer.MovementDurationTimer.GetTime();
             WL.cfg.showInstructions = true;
             WL.cfg.showGoodLuck = true;
+            WL.cfg.isTargetShifted = false;
+
 
         end
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -105,64 +107,57 @@ classdef JumpCursors < wl_experiment
 
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function display_func(WL, win)
-%     if WL.cfg.showInstructions
-%     % Set a black background for the instructions screen
-%     Screen('FillRect', win, [0 0 0]);
-% 
-%     % Define instructions text
-%     instructions = ['Welcome to our study!' newline ...
-%         'In this experiment, we ask you to make reaching movements from a start to a target with your hand at two different paces: fast and slow.' newline ...
-%         'Your goal is to reach and stop in the target as accurately as possible in the specified time, with your hand.' newline ...
-%         'Low-pitch corresponds to moving slow, high-pitch to moving fast.' newline ...
-%         'Once you’ve reached the target, it will disappear, and you can move your hand back to the start.' newline ...
-%         'First, we will practice to learn the two different paces. During the practice, a cursor will indicate where your hand is.' newline ...
-%         'During the experiment, the cursor will not be visible most of the time.' newline ...
-%         'Press any key to begin!'];
-% 
-%     % Draw the instructions text on screen
-%     DrawFormattedText(win, instructions, 'center', 'center', [0 1 0]);
-% 
-%     % wl_draw_text('Message', [0 0 0]);
-% 
-%     % Flip the screen to show the instructions
-%     Screen('Flip', win);
-% 
-%     % Wait for a key press to continue
-%     KbWait;
-% 
-%     % Turn off instructions flag and enable "Good Luck" screen
-%     WL.cfg.showInstructions = false;
-%     WL.cfg.showGoodLuck = true;
-% 
-% elseif WL.cfg.showGoodLuck
-%     % Set a black background for the "Good Luck" screen
-%     Screen('FillRect', win, [0 0 0]);
-% 
-%     % Display "Good Luck!" message
-%     DrawFormattedText(win, 'Good Luck!', 'center', 'center', [0 1 0]);
-% 
-%     Screen('Flip', win);
-% 
-%     % Wait for a short delay before starting the experiment
-%     WaitSecs(1);
-% 
-%     % Disable "Good Luck" flag to start the experiment
-%     WL.cfg.showGoodLuck = false;
-% 
-% else
-                Screen('BeginOpenGL', win);
+         
+  
+        % Define instructions text
+          %   instructionsText = ['Welcome to our study!' newline ...
+          %     'In this experiment, we ask you to make reaching movements from a start to a target with your hand at two different paces: fast and slow.' newline ...
+          %     'Your goal is to reach and stop in the target as accurately as possible in the specified time, with your hand.' newline ...
+          %     'Low-pitch corresponds to moving slow, high-pitch to moving fast.' newline ...
+          %     'Once you’ve reached the target, it will disappear, and you can move your hand back to the start.' newline ...
+          %     'First, we will practice to learn the two different paces. During the practice, a cursor will indicate where your hand is.' newline ...
+          %     'During the experiment, the cursor will not be visible most of the time.' newline ...
+          %     'Press any key to begin!'];
+          % 
+          %   % Draw instructions text with wl_draw_text
+          %   wl_draw_text(WL, instructionsText, [0 0 0], 'Scale', 1, 'Color', [1 1 1], 'Center', 1);
+          % 
+          %   % Flip the screen to show the instructions
+          %   Screen('Flip', win);
+          % 
+          %   % Wait for key press
+          %   KbWait;
+          % 
+          %   % Update flags after instructions are displayed
+          %   WL.cfg.showInstructions = false;
+          %   WL.cfg.showGoodLuck = true;
+          % 
+          % elseif WL.cfg.showGoodLuck
+          % 
+          % 
+          %   % Draw "Good Luck" text with wl_draw_text
+          %   wl_draw_text(WL, 'Good Luck!', [0 0 0], 'Scale', 1.5, 'Color', [1 1 1], 'Center', 1);
+          % 
+          %   % Flip screen to show "Good Luck"
+          %   Screen('Flip', win);
+          % 
+          %   % Wait for a short delay before starting the experiment
+          %   WaitSecs(1);
+          % 
+          %   % Disable "Good Luck" flag to start the experiment
+          %   WL.cfg.showGoodLuck = false;
+          % 
+          % else
+          Screen('BeginOpenGL', win);
                 v = sqrt(sum(WL.Robot.Velocity .^2));
                 if  isfield(WL.Trial, 'TargetPosition') && ~isempty(WL.Trial.TargetPosition);
                     wl_draw_sphere(WL.Trial.TargetPosition + [0 0 -2]', WL.cfg.TargetRadius, [1 1 0], 'Alpha', 0.7);
                 end
 
-                % Determine cursor position based on whether it's a practice trial
-                if WL.cfg.isPracticeTrial
-                  cursorPos = WL.Robot.Position;  % Directly use robot's position for practice trials
-                  WL.cfg.CursorVisible = true;    % Make cursor visible during practice trials
-                else
-                  % In non-practice trials, apply the jump distance if applicable
-                  cursorPos = WL.Robot.Position + [WL.cfg.hasJumped * WL.Trial.JumpDistance, 0, 0]';
+                cursorPos = WL.Robot.Position + [WL.cfg.hasJumped * WL.Trial.JumpDistance, 0, 0]';
+                if WL.cfg.CursorVisible
+                    % red visible
+                    wl_draw_sphere(cursorPos, WL.cfg.CursorRadius, [1 0 0]);
                 end
 
                 if WL.cfg.TargetVisible
@@ -207,7 +202,7 @@ classdef JumpCursors < wl_experiment
                 end
                 WL.draw_text(txt, [0 -20 0]);
             end
-     
+
        
 
 
@@ -231,7 +226,7 @@ classdef JumpCursors < wl_experiment
                     if all(WL.Robot.Active)
                         WL.cfg.CursorPosition = WL.Robot.Position;
                         WL.cfg.shown = false;
-                        WL.cfg.CursorVisible = false;
+                        WL.cfg.CursorVisible = true;
                         WL.cfg.PositionLog = [];
                         WL.cfg.hasPlayedFourthBeep = false;
                         WL.trial_setup();
@@ -242,6 +237,16 @@ classdef JumpCursors < wl_experiment
                     if WL.Robot.Position(2) < 0
                         WL.cfg.CursorVisible = true;
                         WL.cfg.TargetVisible = true;
+                    end
+                  
+                    if mod(WL.TrialNumber, 10) == 0 && ~WL.cfg.isTargetShifted
+                        WL = random_target_shift(WL);
+                        WL.cfg.isTargetShifted = true; % Set the flag to indicate the shift
+                    elseif mod(WL.TrialNumber, 10) ~= 0 && WL.cfg.isTargetShifted
+                        % Reset to the original target position for normal trials after the shift
+                        WL.cfg.TargetPosition = WL.cfg.HomePosition + [0, WL.cfg.TargetDistance, 0]';
+                        WL.cfg.TargetVisible = true; % Ensure the target is visible
+                        WL.cfg.isTargetShifted = false; % Reset the flag to indicate that the target is back to normal
                     end
                     if (WL.robot_stationary() &&  WL.robot_home() && all(WL.Robot.Active))
                         % WL.cfg.hasJumped = false;
@@ -307,7 +312,7 @@ classdef JumpCursors < wl_experiment
                     end
                 case WL.State.CURSORJUMP
                     if ~WL.cfg.hasJumped
-                        WL.cfg.CursorVisible = true;
+                        WL.cfg.CursorVisible = false;
                         WL.cfg.hasJumped = true;
                         WL.Timer.CursorVisibilityTimer.Reset;
                         WL.state_next(WL.State.POSTJUMP);
@@ -317,7 +322,7 @@ classdef JumpCursors < wl_experiment
                     % Check if 100ms have passed since the jump
                     WL.cfg.hasPlayedFourthBeep = false;
                     if WL.Timer.CursorVisibilityTimer.GetTime() > 0.1
-                        WL.cfg.CursorVisible = false;
+                        WL.cfg.CursorVisible = true;
                     end
 
                     if WL.movement_finished()
@@ -517,6 +522,22 @@ classdef JumpCursors < wl_experiment
             % Check if the cursor has reached or surpassed the fixed distance along the y-axis
             flag = current_distance_y >= fixed_distance;
 
+        end
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        function WL = random_target_shift(WL)
+            % Randomize left or right target position
+            shiftDistance = 5; % cm shift left or right
+            if rand < 0.5
+                shiftDistance = -shiftDistance; % Shift left if condition is met
+            end
+
+            % Update target position with the shift
+            WL.cfg.TargetPosition = WL.cfg.HomePosition + [shiftDistance, WL.cfg.TargetDistance, 0]';
+            WL.cfg.TargetVisible = true; % Ensure the target remains visible after shifting
+            WL.cfg.JumpDistance = 0; 
+
+            % Debug log (optional)
+            disp(['Target shifted to new position: ', mat2str(WL.cfg.TargetPosition)]);
         end
     end
 end

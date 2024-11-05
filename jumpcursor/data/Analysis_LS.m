@@ -1,6 +1,6 @@
 clear all; close all;
 
-wl = load('test.mat');
+ load('Pieter.mat');
 
 pre_samples = 400;
 post_samples = 0;

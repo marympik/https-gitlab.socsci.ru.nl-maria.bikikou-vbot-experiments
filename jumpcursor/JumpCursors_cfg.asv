@@ -50,8 +50,13 @@ WL.cfg.FinishDelay = 0.1;
 WL.cfg.ErrorWait = 1.5;
 WL.cfg.TargetDistance = 20;
 WL.cfg.HomePosition = [0 -10 0]';
-WL.cfg.TargetPosition = WL.cfg.HomePosition + [0; WL.cfg.TargetDistance; 0];  % Center target (20 cm above home position)
+WL.cfg.TargetPositions = [ ...
+    WL.cfg.HomePosition + [0; WL.cfg.TargetDistance; 0],  % Center target (20 cm above home position)
+    WL.cfg.HomePosition + [-10; WL.cfg.TargetDistance; 0], % Left target (10 cm to the left and 20 cm above home position)
+    WL.cfg.HomePosition + [10; WL.cfg.TargetDistance; 0]   % Right target (10 cm to the right and 20 cm above home position)
+];
 
+WL.cfg.TargetIndexCount = size(WL.cfg.TargetPositions, 2);
 WL.cfg.isPracticeTrial = false;
 
 % Define the possible jump distances in meters
@@ -118,14 +123,18 @@ end
 JumpDistanceCount = 13;
 RepetitionCount = 1;
 PracticeRepetitionCount = 13;
+TargetCount = 3;
 JumpDistance = num2cell([WL.cfg.possibleJumpDistances]); %  Targets evenly spaced around a circle.
 MovementSpeed = num2cell([{'slow'},{'fast'}]);
+Targets = num2cell ([WL.cfg.TargetPositions]);
 WL.cfg.JumpDistance = JumpDistance;
 WL.cfg.SpeedCue = MovementSpeed;
+WL.cfg.TargetPositions = Targets;
 
 
 SlowJumps.Trial.Index.JumpDistance = [ 1:JumpDistanceCount ];
 SlowJumps.Trial.Index.SpeedCue = [ones(1,JumpDistanceCount)];
+SlowJumps.Trial.Index.Targets
 SlowJumps.Permute = true;
 
 
@@ -147,12 +156,12 @@ if WL.cfg.isPracticeTrial
 else
     PracticeTrials = [];  % No practice trials if it's not a practice phase
 end
+
 if mod(participantNumber, 2) == 1
     T = parse_tree(RepetitionCount*S + RepetitionCount*F);
 else
     T = parse_tree(RepetitionCount*F + RepetitionCount*S);
 end
-
 WL.TrialData = T;
 WL.Trial.CorrectionMagnitude = nan(height(WL.TrialData), 1);
 WL.Trial.MovementDurationTime = nan(height(WL.TrialData), 1);
