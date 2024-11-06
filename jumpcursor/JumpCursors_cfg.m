@@ -52,16 +52,9 @@ WL.cfg.TargetDistance = 20;
 WL.cfg.HomePosition = [0 -10 0]';
 WL.cfg.TargetPosition = WL.cfg.HomePosition + [0; WL.cfg.TargetDistance; 0];  % Center target (20 cm above home position)
 % Define the total number of trials and shifted target count
-totalTrials = 200;
-targetShiftCount = round(totalTrials * 0.1); % 10% of trials will have a shifted target
 
-% Randomly pick trials to shift the target
-shiftedTrials = randperm(totalTrials, targetShiftCount);
 
-% Store the indices for shifted target trials
-WL.cfg.shiftedTrials = shiftedTrials;
-
-WL.cfg.isPracticeTrial = false;
+WL.cfg.isPracticeTrial = true;
 
 % Define the possible jump distances in meters
 WL.cfg.possibleJumpDistances = [-6,-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6];
@@ -163,6 +156,15 @@ else
 end
 
 WL.TrialData = T;
+
+targetShiftCount = round(height(WL.TrialData) * 0.1); % 10% of trials will have a shifted target
+% Randomly pick trials to shift the target
+WL.Trial.shiftedTrials = randperm(height(WL.TrialData), targetShiftCount);
+shiftedTrials = randperm(height(WL.TrialData), targetShiftCount);
+
+% Store these indices for later use
+WL.Trial.shiftedTrials = shiftedTrials; % Assign the shifted trials to WL.Trial
+WL.cfg.shiftedTrials = shiftedTrials;    % Assign the shifted trials to WL.cfg
 WL.Trial.CorrectionMagnitude = nan(height(WL.TrialData), 1);
 WL.Trial.MovementDurationTime = nan(height(WL.TrialData), 1);
 
