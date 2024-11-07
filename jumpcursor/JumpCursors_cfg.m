@@ -52,9 +52,16 @@ WL.cfg.TargetDistance = 20;
 WL.cfg.HomePosition = [0 -10 0]';
 WL.cfg.TargetPosition = WL.cfg.HomePosition + [0; WL.cfg.TargetDistance; 0];  % Center target (20 cm above home position)
 % Define the total number of trials and shifted target count
+WL.cfg.extraTrials = false;  % Set to true during the extra trials phase
+WL.cfg.numExtraTrials = 26;  % Define number of extra trials
+
+% During extra trials, the cursor should always be visible, and no target shift occurs
+WL.cfg.CursorVisibleExtraTrials = true;  % Set cursor visibility for extra trials
+WL.cfg.isTargetShiftedExtraTrials = false;  % No target shifts in extra trials
 
 
-WL.cfg.isPracticeTrial = true;
+
+WL.cfg.isPracticeTrial = false;
 
 % Define the possible jump distances in meters
 WL.cfg.possibleJumpDistances = [-6,-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6];

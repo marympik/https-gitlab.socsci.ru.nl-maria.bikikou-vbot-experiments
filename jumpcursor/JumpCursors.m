@@ -32,9 +32,10 @@ classdef JumpCursors < wl_experiment
 
                 % Start the main loop if hardware initialized successfully
                 if ok
+                    % Start from the INSTRUCTIONS state
+                    WL.state_next(WL.State.INSTRUCTIONS);
                     WL.main_loop();  % Main experiment loop
                 end
-
                 % Stop hardware after the experiment
                 WL.Hardware.Stop();
 
@@ -46,8 +47,8 @@ classdef JumpCursors < wl_experiment
         end
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function  initialise_func(WL, varargin)
-            WL.state_init('INITIALIZE','SETUP','HOME','START','DELAY','GO','MOVEWAIT',...
-                'MOVING','CURSORJUMP','POSTJUMP','FINISH','NEXT','INTERTRIAL','EXIT','TIMEOUT','ERROR','REST');
+            WL.state_init('INSTRUCTIONS', 'INITIALIZE','SETUP','HOME','START','DELAY','GO','MOVEWAIT',...
+                'MOVING','CURSORJUMP','POSTJUMP','FINISH','NEXT','INTERTRIAL','EXIT','TIMEOUT','ERROR','REST', 'EXTRATRIALS');
             WL.cfg.count=1;
             WL.cfg.CursorPositionHistory = zeros(50, 3);
 
@@ -78,10 +79,12 @@ classdef JumpCursors < wl_experiment
             WL.cfg.hasPlayedFourthBeep = false;
             WL.cfg.hasPlayedThreeBeeps = false;
             WL.cfg.targetDurationFast = 0.8;  % example value in seconds for fast movements
-            WL.cfg.targetDurationSlow = 1.2;  % example value in seconds for slow movements
+            WL.cfg.targetDurationSlow = 1.4;  % example value in seconds for slow movements
             WL.cfg.tolerance = 0.3;  % tolerance in seconds
             WL.cfg.feedbackMessage = '';  % Initialize as empty
             WL.cfg.feedbackColor = [1 0 0];
+            WL.cfg.errorMessage = '';  % Initialize as empty
+            WL.cfg.errorColor = [1 0 0];
             WL.Timer.MovementDurationTimer = wl_timer;  % Initialize the movement duration timer
             WL.Timer.FeedbackTimer = wl_timer;          % Initialize the feedback timer
             WL.Timer.MovementReactionTimer = wl_timer;  % Initialize other timers
@@ -95,123 +98,101 @@ classdef JumpCursors < wl_experiment
         end
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function idle_func(WL)
-          % Directly set the cursor position to the robot's current position
-          WL.cfg.CursorPosition = WL.Robot.Position;
+            % Directly set the cursor position to the robot's current position
+            WL.cfg.CursorPosition = WL.Robot.Position;
 
-          % Determine if the target should be displayed based on the current state
-          WL.cfg.display_target = (WL.State.Current == WL.State.INITIALIZE) || ...
-            ((WL.State.Current >= WL.State.GO) && (WL.State.Current <= WL.State.FINISH));
+            % Determine if the target should be displayed based on the current state
+            WL.cfg.display_target = (WL.State.Current == WL.State.INITIALIZE) || ...
+                ((WL.State.Current >= WL.State.GO) && (WL.State.Current <= WL.State.FINISH));
         end
 
 
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function display_func(WL, win)
-         
-  
-        % Define instructions text
-          %   instructionsText = ['Welcome to our study!' newline ...
-          %     'In this experiment, we ask you to make reaching movements from a start to a target with your hand at two different paces: fast and slow.' newline ...
-          %     'Your goal is to reach and stop in the target as accurately as possible in the specified time, with your hand.' newline ...
-          %     'Low-pitch corresponds to moving slow, high-pitch to moving fast.' newline ...
-          %     'Once you’ve reached the target, it will disappear, and you can move your hand back to the start.' newline ...
-          %     'First, we will practice to learn the two different paces. During the practice, a cursor will indicate where your hand is.' newline ...
-          %     'During the experiment, the cursor will not be visible most of the time.' newline ...
-          %     'Press any key to begin!'];
-          % 
-          %   % Draw instructions text with wl_draw_text
-          %   wl_draw_text(WL, instructionsText, [0 0 0], 'Scale', 1, 'Color', [1 1 1], 'Center', 1);
-          % 
-          %   % Flip the screen to show the instructions
-          %   Screen('Flip', win);
-          % 
-          %   % Wait for key press
-          %   KbWait;
-          % 
-          %   % Update flags after instructions are displayed
-          %   WL.cfg.showInstructions = false;
-          %   WL.cfg.showGoodLuck = true;
-          % 
-          % elseif WL.cfg.showGoodLuck
-          % 
-          % 
-          %   % Draw "Good Luck" text with wl_draw_text
-          %   wl_draw_text(WL, 'Good Luck!', [0 0 0], 'Scale', 1.5, 'Color', [1 1 1], 'Center', 1);
-          % 
-          %   % Flip screen to show "Good Luck"
-          %   Screen('Flip', win);
-          % 
-          %   % Wait for a short delay before starting the experiment
-          %   WaitSecs(1);
-          % 
-          %   % Disable "Good Luck" flag to start the experiment
-          %   WL.cfg.showGoodLuck = false;
-          % 
-          % else
-          Screen('BeginOpenGL', win);
-                v = sqrt(sum(WL.Robot.Velocity .^2));
-                if  isfield(WL.Trial, 'TargetPosition') && ~isempty(WL.Trial.TargetPosition);
-                    wl_draw_sphere(WL.Trial.TargetPosition + [0 0 -2]', WL.cfg.TargetRadius, [1 1 0], 'Alpha', 0.7);
-                end
 
-                
-                % Ensure cursor visibility for practice trials
-                if WL.cfg.isPracticeTrial
-                    % During practice trials, make the cursor always visible and do not perform jumps
-                    WL.cfg.CursorVisible = true;
-                    cursorPos = WL.Robot.Position;  % No jumps during practice trials
-                    wl_draw_sphere(cursorPos, WL.cfg.CursorRadius, [1 0 0]);  % Draw the cursor in red
-                elseif WL.cfg.CursorVisible
-                    % Regular behavior for actual trials
-                    cursorPos = WL.Robot.Position + [WL.cfg.hasJumped * WL.Trial.JumpDistance, 0, 0]';
-                    wl_draw_sphere(cursorPos, WL.cfg.CursorRadius, [1 0 0]);
-                end
 
-                if WL.cfg.TargetVisible
-                    wl_draw_sphere(WL.cfg.TargetPosition + [0 0 -2]', WL.cfg.TargetRadius, [1 1 0], 'Alpha', 0.7);
-                    %  else
-                    % wl_draw_sphere(WL.Trial.TargetPosition + [0 0 -2]', WL.cfg.TargetRadius, [1 1 0], 'Alpha', 0.7);
-                end
+            Screen('BeginOpenGL', win);
+            if WL.State.Current == WL.State.INSTRUCTIONS
+                % Define instructions text
+                instructionsText = ['Welcome to our study!' newline ...
+                    'In this experiment, we ask you to make reaching movements from a start to a target with your hand at two different paces: fast and slow.' newline ...
+                    'Your goal is to reach and stop in the target as accurately as possible in the specified time, with your hand.' newline ...
+                    'Low-pitch corresponds to moving slow, high-pitch to moving fast.' newline ...
+                    'Once you’ve reached the target, it will disappear, and you can move your hand back to the start.' newline ...
+                    'First, we will practice to learn the two different paces. During the practice, a cursor will indicate where your hand is.' newline ...
+                    'During the experiment, the cursor will not be visible most of the time.' newline ...
+                    'Press any key to begin!'];
 
-                % Always draw the home position
-                wl_draw_sphere(WL.cfg.HomePosition + [0 0 -2]', WL.cfg.HomeRadius, [0 1 1], 'Alpha', 0.7);
-
-                if WL.cfg.isPracticeTrial && ~isempty(WL.cfg.feedbackMessage) && WL.Timer.FeedbackTimer.GetTime() < 1  % Extend to 5 seconds for testing
-                    WL.draw_text(WL.cfg.feedbackMessage, [0 10 0], 'Scale', 0.7);
-                else
-                    % disp(['Feedback not displayed. Timer: ', num2str(WL.Timer.FeedbackTimer.GetTime())]);
-                end
-                %
-                if WL.cfg.hasJumped
-                    elapsedTime = WL.Timer.CursorVisibilityTimer.GetTime();
-                    if elapsedTime > WL.cfg.CursorVisibilityDuration
-                        if WL.cfg.CursorVisible  % Check to ensure the cursor is currently visible
-                            WL.cfg.CursorVisible = false;  % Make the cursor invisible
-                        end
-                    end
-                end
-
-                %define when to draw to activate the photodiode
-                if (WL.cfg.CursorVisible && WL.State.Current == WL.State.POSTJUMP )
-                    wl_draw_circle(WL.cfg.PhotoDiodePosition', WL.cfg.PhotoDiodeRadius, 0, [1 1 1]);
-                end
-
-                Screen('EndOpenGL', win);
-                % Display text information
-                if all(WL.Robot.Active)
-                    if WL.State.Current == WL.State.HOME
-                        txt = 'Move to Start Position';
-                    else
-                        txt = sprintf('Movement %i of %i', ceil(WL.TrialNumber / 2), ceil(rows(WL.TrialData) / 2));
-                    end
-                else
-                    txt = 'Handle Switch';
-                end
-                WL.draw_text(txt, [0 -20 0]);
+                % Draw instructions text
+                WL.draw_text(instructionsText, [0 0 0], 'Scale', 1, 'Color', [1 1 1], 'Center', 1);
+            end
+            v = sqrt(sum(WL.Robot.Velocity .^2));
+            if  isfield(WL.Trial, 'TargetPosition') && ~isempty(WL.Trial.TargetPosition);
+                wl_draw_sphere(WL.Trial.TargetPosition + [0 0 -2]', WL.cfg.TargetRadius, [1 1 0], 'Alpha', 0.7);
             end
 
-       
 
+            % Ensure cursor visibility for practice trials
+            if WL.cfg.isPracticeTrial
+                % During practice trials, make the cursor always visible and do not perform jumps
+                WL.cfg.CursorVisible = true;
+                cursorPos = WL.Robot.Position;  % No jumps during practice trials
+                wl_draw_sphere(cursorPos, WL.cfg.CursorRadius, [1 0 0]);  % Draw the cursor in red
+            elseif WL.cfg.CursorVisible
+                % Regular behavior for actual trials
+                cursorPos = WL.Robot.Position + [WL.cfg.hasJumped * WL.Trial.JumpDistance, 0, 0]';
+                wl_draw_sphere(cursorPos, WL.cfg.CursorRadius, [1 0 0]);
+            end
 
+            if WL.cfg.TargetVisible
+                wl_draw_sphere(WL.cfg.TargetPosition + [0 0 -2]', WL.cfg.TargetRadius, [1 1 0], 'Alpha', 0.7);
+                %  else
+                % wl_draw_sphere(WL.Trial.TargetPosition + [0 0 -2]', WL.cfg.TargetRadius, [1 1 0], 'Alpha', 0.7);
+            end
+
+            % Always draw the home position
+            wl_draw_sphere(WL.cfg.HomePosition + [0 0 -2]', WL.cfg.HomeRadius, [0 1 1], 'Alpha', 0.7);
+
+            % Draw feedback message for practice trials if the feedback timer is active
+            if WL.cfg.isPracticeTrial && ~isempty(WL.cfg.feedbackMessage) && WL.Timer.FeedbackTimer.GetTime() < 1
+                WL.draw_text(WL.cfg.feedbackMessage, [0 10 0], 'Scale', 0.7, 'Color', WL.cfg.feedbackColor);
+            end
+
+            % Draw error messages for actual trials
+            if ~WL.cfg.isPracticeTrial && ~isempty(WL.cfg.errorMessage)
+                WL.draw_text(WL.cfg.errorMessage, [0 10 0], 'Scale', 0.7, 'Color', WL.cfg.errorColor);
+            end
+            
+            %
+            if WL.cfg.hasJumped
+                elapsedTime = WL.Timer.CursorVisibilityTimer.GetTime();
+                if elapsedTime > WL.cfg.CursorVisibilityDuration
+                    if WL.cfg.CursorVisible  % Check to ensure the cursor is currently visible
+                        WL.cfg.CursorVisible = false;  % Make the cursor invisible
+                    end
+                end
+            end
+
+            %define when to draw to activate the photodiode
+            if (WL.cfg.CursorVisible && WL.State.Current == WL.State.POSTJUMP )
+                wl_draw_circle(WL.cfg.PhotoDiodePosition', WL.cfg.PhotoDiodeRadius, 0, [1 1 1]);
+            end
+             
+
+            Screen('EndOpenGL', win);
+            % Display text information
+            if all(WL.Robot.Active)
+                if WL.State.Current == WL.State.HOME
+                    txt = 'Move to Start Position';
+                else
+                    txt = sprintf('Movement %i of %i', ceil(WL.TrialNumber / 2), ceil(rows(WL.TrialData) / 2));
+                end
+            else
+                txt = 'Handle Switch';
+            end
+            WL.draw_text(txt, [0 -20 0]);
+
+        end
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
         function state_process_func(WL)
@@ -220,6 +201,13 @@ classdef JumpCursors < wl_experiment
             end
 
             switch WL.State.Current % State processing.
+             case WL.State.INSTRUCTIONS
+         
+            % Wait for key press to continue
+            if KbCheck
+                WaitSecs(0.1);  % Debounce delay
+                WL.state_next(WL.State.INITIALIZE);  % Move to the initialize state after instructions
+            end
 
                 case WL.State.INITIALIZE % Initialization state.
                     WL.cfg.CursorPosition = WL.Robot.Position;
@@ -244,6 +232,13 @@ classdef JumpCursors < wl_experiment
                         else
                             % Reset target to original position
                             WL = reset_target_position(WL);
+                        end
+                        if WL.TrialNumber >= WL.cfg.extraTrialStartIndex
+                            % For extra trials, make cursor always visible
+                            WL.cfg.CursorVisible = true;
+                        else
+                            % Regular trial behavior
+                            WL.cfg.CursorVisible = false;
                         end
                         end
                         WL.state_next(WL.State.HOME);
@@ -334,6 +329,9 @@ classdef JumpCursors < wl_experiment
                     if WL.movement_finished()
                         WL.cfg.movementDurationTime = WL.Timer.MovementDurationTimer.GetTime();
                         WL.generate_feedback();  % This will store feedback message and color
+                        if ~WL.cfg.isPracticeTrial
+                            WL.check_speed_error();  % Call the error check function for actual trials
+                        end
                         if ~WL.cfg.hasPlayedFourthBeep
                             currentSpeedCue = WL.Trial.SpeedCue;  % Get the current trial's speed
 
@@ -422,6 +420,20 @@ classdef JumpCursors < wl_experiment
                     WL.cfg.ExitFlag = true;
                     TrialDataList = WL.TrialData;
                     save('TrialDataList.mat', 'TrialDataList');
+                case WL.State.EXTRA_TRIALS
+                    % Loop through 26 extra trials
+                    if WL.cfg.TrialNumber <= height(WL.TrialData) + 26  % Total trials + 26 extra trials
+                        WL.cfg.CursorVisible = true;  % Cursor should be visible
+                        WL.cfg.isTargetShifted = false;  % No target shifting for extra trials
+
+                        % Set up and run each extra trial similar to regular trials
+                        WL.state_next(WL.State.SETUP);
+                    else
+                        % All extra trials completed, end the experiment
+                        WL.state_next(WL.State.EXIT);
+                    end
+
+
 
                 case WL.State.TIMEOUT
 
@@ -550,6 +562,27 @@ classdef JumpCursors < wl_experiment
            WL.cfg.TargetPosition = WL.cfg.HomePosition + [0; WL.cfg.TargetDistance; 0];
            WL.cfg.isTargetShifted = false;
        end
+       function check_speed_error(WL)
+    % Speed Feedback Logic for actual trials
+    currentSpeedCue = WL.TrialData.SpeedCue{WL.TrialNumber};  % Get the current trial's speed cue
+    if strcmp(currentSpeedCue, 'fast')
+        targetDuration = WL.cfg.targetDurationFast;  % Set target duration for fast trials
+    else
+        targetDuration = WL.cfg.targetDurationSlow;  % Set target duration for slow trials
+    end
 
+    % Compare movement duration against the target duration
+    movementDuration = WL.cfg.movementDurationTime;
+
+    % Error message logic for actual trials
+    if movementDuration < (targetDuration - WL.cfg.tolerance)
+        WL.cfg.errorMessage = 'Move Faster!';
+    elseif movementDuration > (targetDuration + WL.cfg.tolerance)
+        WL.cfg.errorMessage = 'Move Slower!';
+    else
+        WL.cfg.errorMessage = '';  % No error if within tolerance
+    end
+   
+       end
     end
 end
