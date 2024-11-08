@@ -286,7 +286,16 @@ classdef JumpCursors < wl_experiment
             % disp(' timer')
             WL.state_next(WL.State.GO);
 
-            
+          if strcmp(currentSpeedCue, 'fast')
+            % Three quick high-pitched beeps
+            WL.play_sound(WL.cfg.highbeep);
+            %disp('Playing first three fast beeps');
+          elseif strcmp(currentSpeedCue, 'slow')
+            % Three slow low-pitched beeps
+            WL.play_sound(WL.cfg.slowbeep);
+            %disp('Playing first three slow beeps');
+          end
+
           elseif  WL.movement_started()
             %  WL.error_state('Moved Too Soon',WL.State.SETUP);
             %WL.trial_abort();
@@ -298,6 +307,7 @@ classdef JumpCursors < wl_experiment
           WL.Timer.MovementReactionTimer.Reset();
           currentSpeedCue = WL.TrialData.SpeedCue{WL.TrialNumber};
 
+          if WL.Timer.MovementReactionTimer > 
           if strcmp(currentSpeedCue, 'fast')
             % Three quick high-pitched beeps
             WL.play_sound(WL.cfg.highbeep);

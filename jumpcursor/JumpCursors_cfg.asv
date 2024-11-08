@@ -133,14 +133,17 @@ WL.cfg.JumpDistance = JumpDistance;
 WL.cfg.SpeedCue = MovementSpeed;
 
 
-PractiseFast.Trial.Index.JumpDistance = [7*ones(1,JumpDistanceCount)];
-PractiseFast.Trial.Index.SpeedCue = [2*ones(1,JumpDistanceCount)];
+PractiseFast.Trial.Index.JumpDistance = [ones(1,JumpDistanceCount)];
+PractiseFast.Trial.Index.SpeedCue = [ones(1,JumpDistanceCount)];
 PractiseFast.Permute = false;
 
-PractiseSlow.Trial.Index.JumpDistance = [7*ones(1,JumpDistanceCount)];
+PractiseSlow.Trial.Index.JumpDistance = [1];
 PractiseSlow.Trial.Index.SpeedCue = [ones(1,JumpDistanceCount)];
 PractiseSlow.Permute = false;
 
+SlowFullVis.Trial.Index.JumpDistance = 1:JumpDistanceCount;
+SlowFullVis.Trial.Index.SpeedCue = [ones(1,JumpDistanceCount)];
+SlowFullVis.permute = true;
 
 SlowJumps.Trial.Index.JumpDistance = [ 1:JumpDistanceCount ];
 SlowJumps.Trial.Index.SpeedCue = [ones(1,JumpDistanceCount)];
@@ -151,15 +154,13 @@ FastJumps.Trial.Index.JumpDistance =  1:JumpDistanceCount ;
 FastJumps.Trial.Index.SpeedCue = 2*ones(1,JumpDistanceCount);
 FastJumps.Permute = true;
 
-
+FastFullVis.Trial.Index.JumpDistance = 1:JumpDistanceCount;
+FastFullVis.Trial.Index.SpeedCue = [ones(1,JumpDistanceCount)];
+FastFullVis.Permute = true;
 
 SlowFullVis.Trial.Index.JumpDistance = 1:JumpDistanceCount;
 SlowFullVis.Trial.Index.SpeedCue = [ones(1,JumpDistanceCount)];
 SlowFullVis.permute = true;
-
-FastFullVis.Trial.Index.JumpDistance = 1:JumpDistanceCount;
-FastFullVis.Trial.Index.SpeedCue = [2*ones(1,JumpDistanceCount)];
-FastFullVis.Permute = true;
 
 Sprac = WL.parse_trials(PractiseSlow);
 Fprac = WL.parse_trials(PractiseFast);
