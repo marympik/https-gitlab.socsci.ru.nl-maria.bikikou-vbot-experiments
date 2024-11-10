@@ -159,8 +159,6 @@ classdef JumpCursors < wl_experiment
 
       if WL.cfg.TargetVisible
         wl_draw_sphere(WL.cfg.TargetPosition + [0 0 -2]', WL.cfg.TargetRadius, [1 1 0], 'Alpha', 0.7);
-        %  else
-        % wl_draw_sphere(WL.Trial.TargetPosition + [0 0 -2]', WL.cfg.TargetRadius, [1 1 0], 'Alpha', 0.7);
       end
 
       % Always draw the home position
@@ -194,9 +192,7 @@ classdef JumpCursors < wl_experiment
           end
         end
       end
-      %else
-      %   WL.cfg.CursorVisible = true;
-      %end
+     
 
       %define when to draw to activate the photodiode
       if (WL.cfg.CursorVisible && WL.State.Current == WL.State.POSTJUMP )
@@ -459,20 +455,6 @@ classdef JumpCursors < wl_experiment
           WL.cfg.ExitFlag = true;
           TrialDataList = WL.TrialData;
           save('TrialDataList.mat', 'TrialDataList');
-        % case WL.State.EXTRA_TRIALS
-        %   % Loop through 26 extra trials
-        %   if WL.cfg.TrialNumber <= height(WL.TrialData) + 26  % Total trials + 26 extra trials
-        %     WL.cfg.CursorVisible = true;  % Cursor should be visible
-        %     WL.cfg.isTargetShifted = false;  % No target shifting for extra trials
-        % 
-        %     % Set up and run each extra trial similar to regular trials
-        %     WL.state_next(WL.State.SETUP);
-        %   else
-        %     % All extra trials completed, end the experiment
-        %     WL.state_next(WL.State.EXIT);
-        %   end
-
-
 
         case WL.State.TIMEOUT
 
@@ -563,10 +545,8 @@ classdef JumpCursors < wl_experiment
 
         % Reset the feedback timer
         WL.Timer.FeedbackTimer.Reset();
-      %else
-        % No feedback for actual trials
-       % disp('No feedback provided for actual trials.');
-      end
+    end
+
    
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -609,13 +589,13 @@ classdef JumpCursors < wl_experiment
 
       % Define custom error conditions
       if strcmp(currentSpeedCue, 'fast')
-        if movementDuration > 1.2  % Faster threshold for fast movements
+        if movementDuration > 1  % Faster threshold for fast movements
           WL.cfg.errorMessage = 'Move Faster!';
         else
           WL.cfg.errorMessage = '';  % Clear error message if conditions are met
         end
       elseif strcmp(currentSpeedCue, 'slow')
-        if movementDuration < 1.2  % Slower threshold for slow movements
+        if movementDuration < 1.3  % Slower threshold for slow movements
           WL.cfg.errorMessage = 'Move Slower!';
         else
           WL.cfg.errorMessage = '';  % Clear error message if conditions are met
