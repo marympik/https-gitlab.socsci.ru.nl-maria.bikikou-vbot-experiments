@@ -54,7 +54,7 @@ wl = load("Leonie.mat");
 % end
 
 % 
-trial_number = 13; % Specify the trial number
+trial_number = 11; % Specify the trial number
 % Check if trial_number is valid
 if trial_number < 1 || trial_number > size(wl.RobotPosition, 1)
     error('Invalid trial number');
