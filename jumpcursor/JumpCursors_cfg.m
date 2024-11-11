@@ -51,9 +51,10 @@ WL.cfg.ErrorWait = 1.5;
 WL.cfg.TargetDistance = 20;
 WL.cfg.HomePosition = [0 -10 0]';
 WL.cfg.TargetPosition = WL.cfg.HomePosition + [0; WL.cfg.TargetDistance; 0];  % Center target (20 cm above home position)
-% Define the total number of trials and shifted target count
-WL.cfg.extraTrials = false;  % Set to true during the extra trials phase
-WL.cfg.numExtraTrials = 26;  % Define number of extra trials
+WL.cfg.PracticeCompleted = false;         % To track if all practice blocks are completed
+WL.cfg.ConditionCompleted = false; 
+
+
 
 % During extra trials, the cursor should always be visible, and no target shift occurs
 WL.cfg.CursorVisibleExtraTrials = true;  % Set cursor visibility for extra trials
@@ -126,7 +127,6 @@ end
 
 JumpDistanceCount = 13;
 RepetitionCount = 1;
-PracticeRepetitionCount = 13;
 JumpDistance = num2cell([WL.cfg.possibleJumpDistances]); %  Targets evenly spaced around a circle.
 MovementSpeed = num2cell([{'slow'},{'fast'}]);
 WL.cfg.JumpDistance = JumpDistance;
@@ -171,16 +171,7 @@ Svis = WL.parse_trials(SlowFullVis);
 
 Fvis = WL.parse_trials(FastFullVis);
 
-if WL.cfg.isPracticeTrial
-    % One repetition of practice trials for the block
-    if strcmp(WL.cfg.BlockOrder{1}, 'fast')
-        PracticeTrials = parse_tree(PracticeRepetitionCount * F);
-    else
-        PracticeTrials = parse_tree(PracticeRepetitionCount * S);
-    end
-else
-    PracticeTrials = [];  % No practice trials if it's not a practice phase
-end
+
 if mod(participantNumber, 2) == 1
     T = parse_tree(Sprac + Fprac + RepetitionCount*S + RepetitionCount*F + Svis + Fvis);
 else
@@ -189,17 +180,32 @@ end
 
 WL.TrialData = T;
 
-targetShiftCount = round(height(WL.TrialData) * 0.1); % 10% of trials will have a shifted target
-% Randomly pick trials to shift the target
-WL.Trial.shiftedTrials = randperm(height(WL.TrialData), targetShiftCount);
-shiftedTrials = randperm(height(WL.TrialData), targetShiftCount);
+totalTrialCount = height(WL.TrialData);
+
+% Calculate the number of target shifts (10% of trials)
+targetShiftCount = round(totalTrialCount * 0.1);
+
+% Split the target shifts evenly between slow and fast trials
+targetShiftSlowCount = round(targetShiftCount / 2);
+targetShiftFastCount = targetShiftCount - targetShiftSlowCount;
+
+% Identify slow and fast trials
+slowTrials = find(strcmp(WL.TrialData.SpeedCue, 'slow'));
+fastTrials = find(strcmp(WL.TrialData.SpeedCue, 'fast'));
+
+% Randomly select slow and fast trials to apply target shifts
+shiftedSlowTrials = slowTrials(randperm(length(slowTrials), targetShiftSlowCount));
+shiftedFastTrials = fastTrials(randperm(length(fastTrials), targetShiftFastCount));
+
+% Combine the indices for the shifted trials
+shiftedTrials = [shiftedSlowTrials; shiftedFastTrials];
 
 % Store these indices for later use
 WL.Trial.shiftedTrials = shiftedTrials; % Assign the shifted trials to WL.Trial
 WL.cfg.shiftedTrials = shiftedTrials;    % Assign the shifted trials to WL.cfg
-WL.Trial.MovementDurationTime = nan(height(WL.TrialData), 1);
 
-
+% Initialize MovementDurationTime for all trials
+WL.Trial.MovementDurationTime = nan(totalTrialCount, 1);
 
 disp(['Total number of trials: ', num2str(height(WL.TrialData))]);
 end

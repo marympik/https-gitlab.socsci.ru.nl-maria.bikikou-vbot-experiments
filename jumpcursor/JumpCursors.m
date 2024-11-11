@@ -120,9 +120,9 @@ classdef JumpCursors < wl_experiment
           'You will not be able to see your hand during the experiment.',
           'Your goal is to stop your hand in the target as accurately as possible.',
           'Once you have reached the target, you will hear a sound and the target will disappear.',
-          'Then you can mocve your hand back to the start',
-          'The speed of movement is instructed by the pitch of a sound : low pitch corresponds to moving slower,',
-          'and high-pitch corresponds to moving faster. You will practice the speeds cues before the experiment',
+          'Then you can move your hand back to the start',
+          'The speed of movement is instructed by the pitch of a sound : low pitch corresponds to move slower,',
+          'and high-pitch corresponds to move faster. You will practice the speed cues before the experiment',
           'and you will perform the same speed within a block of trials',
           'Good Luck!'
           };
@@ -179,6 +179,10 @@ classdef JumpCursors < wl_experiment
       if   ((strcmp(WL.Trial.block_name, 'FastJumps')) || (strcmp(WL.Trial.block_name,'SlowJumps'))) && ~isempty(WL.cfg.errorMessage) && WL.Timer.ErrorDisplayTimer.GetTime() < 0.4
         % Show the error message for 1.5 seconds
         WL.draw_text(WL.cfg.errorMessage, [0 10 0], 'Scale', 0.7, 'Color', WL.cfg.errorColor);
+      end
+
+      if WL.State.Current == WL.State.REST
+        WL.draw_text('Take a break! Press any key to continue.', [0 10 0], 'Scale', 0.7, 'Color', [1 1 1]);
       end
 
       %
@@ -240,7 +244,6 @@ classdef JumpCursors < wl_experiment
         case WL.State.SETUP % Setup details of next trial, but only when robot stationary and active.
           if all(WL.Robot.Active)
             WL.cfg.CursorPosition = WL.Robot.Position;
-            WL.cfg.shown = false;
             WL.cfg.CursorVisible = true;
             WL.cfg.PositionLog = [];
             WL.cfg.hasPlayedFourthBeep = false;
@@ -250,15 +253,20 @@ classdef JumpCursors < wl_experiment
                 % Shift the target randomly to the left or right
                 WL = random_target_shift(WL);
                 WL.cfg.isTargetShifted = true;
+                WL.cfg.CursorVisible = false;
               else
                 % Reset target to original position
                 WL = reset_target_position(WL);
-              
+
                 % Regular trial behavior
                 WL.cfg.CursorVisible = false;
               end
             end
             WL.state_next(WL.State.HOME);
+            if WL.Robot.Position(2) < 0
+              WL.cfg.CursorVisible = true;
+              WL.cfg.TargetVisible = true;
+            end
           end
 
         case WL.State.HOME % Start trial when robot in home position (and stationary and active).
@@ -282,7 +290,7 @@ classdef JumpCursors < wl_experiment
             % disp(' timer')
             WL.state_next(WL.State.GO);
 
-            
+
           elseif  WL.movement_started()
             %  WL.error_state('Moved Too Soon',WL.State.SETUP);
             %WL.trial_abort();
@@ -327,19 +335,19 @@ classdef JumpCursors < wl_experiment
           end
           WL.cfg.hasPlayedFourthBeep = false;
           if (~(strcmp(WL.Trial.block_name, 'FastJumps')) && ~(strcmp(WL.Trial.block_name,'SlowJumps')))
-          WL.cfg.CursorVisible = true;
+            WL.cfg.CursorVisible = true;
           else
-          WL.cfg.CursorVisible = false;
-          
+            WL.cfg.CursorVisible = false;
+
           end
 
           %%if reaches_jump_point(WL) && ~WL.cfg.hasJumped % Check if it's time to jump
           if  reaches_jump_point(WL) && ~WL.cfg.hasJumped
-          %disp('Transitioning to CURSORJUMP');
+            %disp('Transitioning to CURSORJUMP');
             WL.state_next(WL.State.CURSORJUMP);
-          %elseif WL.movement_finished()
-          %  WL.cfg.movementDurationTime = WL.Timer.MovementDurationTimer.GetTime();
-          %  WL.state_next(WL.State.FINISH);
+            %elseif WL.movement_finished()
+            %  WL.cfg.movementDurationTime = WL.Timer.MovementDurationTimer.GetTime();
+            %  WL.state_next(WL.State.FINISH);
           end
         case WL.State.CURSORJUMP
           if ~WL.cfg.hasJumped
@@ -357,18 +365,18 @@ classdef JumpCursors < wl_experiment
               WL.cfg.CursorVisible = true;
             else
               WL.cfg.CursorVisible = false;
-          
-          end
+
+            end
           end
 
           if WL.movement_finished()
             WL.cfg.movementDurationTime = WL.Timer.MovementDurationTimer.GetTime();
-             if (~(strcmp(WL.Trial.block_name, 'FastJumps')) && ~(strcmp(WL.Trial.block_name,'SlowJumps')))
+            if (~(strcmp(WL.Trial.block_name, 'FastJumps')) && ~(strcmp(WL.Trial.block_name,'SlowJumps')))
               WL.generate_feedback();  % This will store feedback message and color
             else
               WL.cfg.CursorVisible = false;
-          
-          end
+
+            end
             if ~WL.cfg.isPracticeTrial
               WL.check_speed_error();  % Call the error check function for actual trials
             end
@@ -431,15 +439,43 @@ classdef JumpCursors < wl_experiment
 
             end
           end
-
         case WL.State.NEXT
-
-          if WL.Trial.RestFlag==1
+          if WL.Trial.RestFlag == 1
             WL.state_next(WL.State.REST);
-          elseif  ~WL.trial_next()
+          elseif ~WL.trial_next()
             WL.state_next(WL.State.EXIT);
           else
-            WL.state_next(WL.State.INTERTRIAL);
+            if strcmp(WL.Trial.block_name, 'PractiseFast') && strcmp(WL.Trial.block_name, 'PractiseSlow')
+              % After the last practice block (PractiseFast), add a break
+              if ~WL.cfg.PracticeCompleted
+                WL.cfg.PracticeCompleted = true;  % Mark practice as complete after PractiseFast
+                WL.Trial.RestFlag = 1;
+                WL.state_next(WL.State.REST);
+              else
+                WL.state_next(WL.State.INTERTRIAL);
+              end
+
+            elseif strcmp(WL.Trial.block_name, 'SlowJumps') || strcmp(WL.Trial.block_name, 'FastJumps')
+              % After the last practice block (PractiseFast), add a break
+              if ~WL.cfg.ConditionCompleted 
+                WL.cfg.ConditionCompleted = true;  % Mark practice as complete after PractiseFast
+                WL.Trial.RestFlag = 1;
+                WL.state_next(WL.State.REST);
+              else
+                WL.state_next(WL.State.INTERTRIAL);
+              end
+            else
+              WL.state_next(WL.State.INTERTRIAL);
+            end
+          end
+
+        case WL.State.REST
+
+          % Wait for key press to continue
+          if KbCheck
+            WaitSecs(0.1);  % Debounce delay to avoid detecting multiple presses
+            WL.Trial.RestFlag = 0;  % Reset the rest flag
+            WL.state_next(WL.State.NEXT);  % Move to the next state after the break
           end
 
         case WL.State.INTERTRIAL % Wait for the intertrial delay to expire.
@@ -501,7 +537,8 @@ classdef JumpCursors < wl_experiment
       currentPosition = WL.Robot.Position;  % Get the current robot position
       currentVelocity = sqrt (sum ( WL.Robot.Velocity .^2)) ;  %  velocity
       % Update previous position for the next frame
-      flag = WL.Robot.Position(2) >= WL.cfg.TargetPosition(2) && ~WL.cfg.hasPlayedFourthBeep && currentVelocity < WL.cfg.VelocityThreshold ;
+      flag = WL.Robot.Position(2) >= 0 && ~WL.cfg.hasPlayedFourthBeep && currentVelocity < WL.cfg.VelocityThreshold ;
+      % WL.cfg.TargetPosition(2)
 
     end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -568,6 +605,10 @@ classdef JumpCursors < wl_experiment
       if rand < 0.5
         shiftDistance = -shiftDistance; % Shift left if condition is met
       end
+      if WL.Robot.Position(2) < 0
+        WL.cfg.CursorVisible = true;
+        WL.cfg.TargetVisible = true;
+      end
 
       % Update target position with the shift
       WL.cfg.TargetPosition = WL.cfg.HomePosition + [shiftDistance; WL.cfg.TargetDistance; 0];
@@ -595,7 +636,7 @@ classdef JumpCursors < wl_experiment
           WL.cfg.errorMessage = '';  % Clear error message if conditions are met
         end
       elseif strcmp(currentSpeedCue, 'slow')
-        if movementDuration < 1.3  % Slower threshold for slow movements
+        if movementDuration < 1.1  % Slower threshold for slow movements
           WL.cfg.errorMessage = 'Move Slower!';
         else
           WL.cfg.errorMessage = '';  % Clear error message if conditions are met
