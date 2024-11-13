@@ -445,23 +445,18 @@ classdef JumpCursors < wl_experiment
         elseif ~WL.trial_next()
             WL.state_next(WL.State.EXIT);
             else
-           if ~WL.cfg.PracticeCompleted
-            if strcmp(WL.Trial.block_name, 'PractiseFast')
-                WL.cfg.PractiseFastCompleted = true;  % Mark PractiseFast as complete
-            elseif strcmp(WL.Trial.block_name, 'PractiseSlow')
-                WL.cfg.PractiseSlowCompleted = true;  % Mark PractiseSlow as complete
-            end
-
-            % Check if both practice blocks are completed
-            if WL.cfg.PractiseFastCompleted && WL.cfg.PractiseSlowCompleted
-                WL.cfg.PracticeCompleted = true;  % Mark all practice as complete
-                WL.Trial.RestFlag = 1;
-                WL.state_next(WL.State.REST);
+          strcmp(WL.Trial.block_name, 'PractiseFast') || strcmp(WL.Trial.block_name, 'PractiseSlow');
+            % After the last practice block (PractiseFast), add a break
+            if ~WL.cfg.PracticeCompleted
+              WL.cfg.PracticeCompleted = true;  % Mark practice as complete after PractiseFast
+              WL.Trial.RestFlag = 1;
+              WL.state_next(WL.State.REST);
             else
-                WL.state_next(WL.State.INTERTRIAL);  % Continue to next trial if practice is not fully complete
+              WL.state_next(WL.State.INTERTRIAL);
             end
-           else 
-             if strcmp(WL.Trial.block_name, 'SlowJumps') || strcmp(WL.Trial.block_name, 'FastJumps')
+        
+            % Break between fast and slow blocks
+            if strcmp(WL.Trial.block_name, 'SlowJumps') || strcmp(WL.Trial.block_name, 'FastJumps')
                 % Determine if we should add a break between fast and slow blocks
                 if ~WL.cfg.ConditionCompleted
                     % Check if we're at the end of the first condition (based on BlockOrder)
@@ -479,7 +474,6 @@ classdef JumpCursors < wl_experiment
             else
                 WL.state_next(WL.State.INTERTRIAL);
             end
-           end
         end
 
         case WL.State.REST
