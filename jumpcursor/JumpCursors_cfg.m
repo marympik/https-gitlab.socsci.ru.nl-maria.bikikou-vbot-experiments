@@ -52,7 +52,7 @@ WL.cfg.TargetDistance = 20;
 WL.cfg.HomePosition = [0 -10 0]';
 WL.cfg.TargetPosition = WL.cfg.HomePosition + [0; WL.cfg.TargetDistance; 0];  % Center target (20 cm above home position)
 WL.cfg.PracticeSlowCompleted = false; 
-WL.cfg.PractiseFastCompleted = false;
+WL.cfg.PracticeFastCompleted = false;
 WL.cfg.PracticeCompleted = false ; 
 WL.cfg.ConditionCompleted = false; 
 
@@ -128,7 +128,7 @@ end
 % JumpDistances.
 
 JumpDistanceCount = 13;
-RepetitionCount = 1;
+RepetitionCount = 20;
 JumpDistance = num2cell([WL.cfg.possibleJumpDistances]); %  Targets evenly spaced around a circle.
 MovementSpeed = num2cell([{'slow'},{'fast'}]);
 WL.cfg.JumpDistance = JumpDistance;

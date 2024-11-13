@@ -440,48 +440,19 @@ classdef JumpCursors < wl_experiment
             end
           end
        case WL.State.NEXT
-        if WL.Trial.RestFlag == 1
+    if WL.Trial.RestFlag == 1
+        WL.state_next(WL.State.REST);
+    elseif ~WL.trial_next()
+        WL.state_next(WL.State.EXIT);
+    else
+        % Set breaks at specific trial numbers
+        if WL.TrialNumber == 27 || WL.TrialNumber == 287
+            WL.Trial.RestFlag = 1;
             WL.state_next(WL.State.REST);
-        elseif ~WL.trial_next()
-            WL.state_next(WL.State.EXIT);
-            else
-           if ~WL.cfg.PracticeCompleted
-            if strcmp(WL.Trial.block_name, 'PractiseFast')
-                WL.cfg.PractiseFastCompleted = true;  % Mark PractiseFast as complete
-            elseif strcmp(WL.Trial.block_name, 'PractiseSlow')
-                WL.cfg.PractiseSlowCompleted = true;  % Mark PractiseSlow as complete
-            end
-
-            % Check if both practice blocks are completed
-            if WL.cfg.PractiseFastCompleted && WL.cfg.PractiseSlowCompleted
-                WL.cfg.PracticeCompleted = true;  % Mark all practice as complete
-                WL.Trial.RestFlag = 1;
-                WL.state_next(WL.State.REST);
-            else
-                WL.state_next(WL.State.INTERTRIAL);  % Continue to next trial if practice is not fully complete
-            end
-           else 
-             if strcmp(WL.Trial.block_name, 'SlowJumps') || strcmp(WL.Trial.block_name, 'FastJumps')
-                % Determine if we should add a break between fast and slow blocks
-                if ~WL.cfg.ConditionCompleted
-                    % Check if we're at the end of the first condition (based on BlockOrder)
-                    if (strcmp(WL.cfg.BlockOrder{1}, 'fast') && strcmp(WL.Trial.block_name, 'FastJumps')) || ...
-                       (strcmp(WL.cfg.BlockOrder{1}, 'slow') && strcmp(WL.Trial.block_name, 'SlowJumps'))
-                        WL.cfg.ConditionCompleted = true;  % Mark the first condition as complete
-                        WL.Trial.RestFlag = 1;
-                        WL.state_next(WL.State.REST);
-                    else
-                        WL.state_next(WL.State.INTERTRIAL);
-                    end
-                else
-                    WL.state_next(WL.State.INTERTRIAL);
-                end
-            else
-                WL.state_next(WL.State.INTERTRIAL);
-            end
-           end
+        else
+            WL.state_next(WL.State.INTERTRIAL);
         end
-
+    end
         case WL.State.REST
 
           % Wait for key press to continue

@@ -444,19 +444,24 @@ classdef JumpCursors < wl_experiment
             WL.state_next(WL.State.REST);
         elseif ~WL.trial_next()
             WL.state_next(WL.State.EXIT);
+        else
+           if ~WL.cfg.PracticeCompleted
+            % if strcmp(WL.Trial.block_name, 'PractiseFast')
+            %     WL.cfg.PracticeFastCompleted = true;  % Mark PractiseFast as complete
+            % elseif strcmp(WL.Trial.block_name, 'PractiseSlow')
+            %     WL.cfg.PracticeSlowCompleted = true;  % Mark PractiseSlow as complete
+            % end
+            if WL.TrialNumber == 27 || 48
+                WL.Trial.RestFlag = 1;
+                WL.state_next(WL.State.REST);
+
+         
             else
-          strcmp(WL.Trial.block_name, 'PractiseFast') || strcmp(WL.Trial.block_name, 'PractiseSlow');
-            % After the last practice block (PractiseFast), add a break
-            if ~WL.cfg.PracticeCompleted
-              WL.cfg.PracticeCompleted = true;  % Mark practice as complete after PractiseFast
-              WL.Trial.RestFlag = 1;
-              WL.state_next(WL.State.REST);
-            else
-              WL.state_next(WL.State.INTERTRIAL);
+                WL.state_next(WL.State.INTERTRIAL);  % Continue to next trial if practice is not fully complete
             end
-        
-            % Break between fast and slow blocks
-            if strcmp(WL.Trial.block_name, 'SlowJumps') || strcmp(WL.Trial.block_name, 'FastJumps')
+           
+           else 
+             if strcmp(WL.Trial.block_name, 'SlowJumps') || strcmp(WL.Trial.block_name, 'FastJumps')
                 % Determine if we should add a break between fast and slow blocks
                 if ~WL.cfg.ConditionCompleted
                     % Check if we're at the end of the first condition (based on BlockOrder)
@@ -474,6 +479,7 @@ classdef JumpCursors < wl_experiment
             else
                 WL.state_next(WL.State.INTERTRIAL);
             end
+           end
         end
 
         case WL.State.REST
