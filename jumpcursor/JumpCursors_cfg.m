@@ -51,10 +51,7 @@ WL.cfg.ErrorWait = 1.5;
 WL.cfg.TargetDistance = 20;
 WL.cfg.HomePosition = [0 -10 0]';
 WL.cfg.TargetPosition = WL.cfg.HomePosition + [0; WL.cfg.TargetDistance; 0];  % Center target (20 cm above home position)
-WL.cfg.PracticeSlowCompleted = false; 
-WL.cfg.PracticeFastCompleted = false;
-WL.cfg.PracticeCompleted = false ; 
-WL.cfg.ConditionCompleted = false; 
+
 
 
 
