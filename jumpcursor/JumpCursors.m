@@ -446,7 +446,7 @@ classdef JumpCursors < wl_experiment
         WL.state_next(WL.State.EXIT);
     else
         % Set breaks at specific trial numbers
-        if WL.TrialNumber == 27 || WL.TrialNumber == 287
+        if WL.TrialNumber == 27 || WL.TrialNumber == 287 || WL.TrialNumber == 547
             WL.Trial.RestFlag = 1;
             WL.state_next(WL.State.REST);
         else
