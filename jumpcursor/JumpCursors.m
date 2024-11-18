@@ -365,6 +365,7 @@ classdef JumpCursors < wl_experiment
               WL.cfg.CursorVisible = true;
             else
               WL.cfg.CursorVisible = false;
+              currentPosition = WL.Robot.Position;
 
             end
           end
@@ -447,7 +448,7 @@ classdef JumpCursors < wl_experiment
     else
         % Set breaks at specific trial numbers
         
-        if WL.TrialNumber == 27 || WL.TrialNumber == 165 || WL.TrialNumber == 287 || WL.TrialNumber == 547
+        if WL.TrialNumber == 27 || WL.TrialNumber == 287 || WL.TrialNumber == 410 || WL.TrialNumber == 547
             WL.Trial.RestFlag = 1;
             WL.state_next(WL.State.REST);
         else

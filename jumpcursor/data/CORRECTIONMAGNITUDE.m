@@ -1,4 +1,4 @@
-wl = load('pp03.mat');
+wl = load('Leonie2.mat');
 num_trials = size(wl.TimeStamp, 1);
 correctionX = NaN(1, num_trials);  % Store signed correction in the x-direction
 jumpDistances = NaN(1, num_trials);
