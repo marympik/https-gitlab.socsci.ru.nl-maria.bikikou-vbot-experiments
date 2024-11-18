@@ -24,7 +24,7 @@ classdef JumpCursors < wl_experiment
         % Set up S826 analog input and digital output channels.
         WL.Sensoray = wl_sensoray(WL.cfg.SensorayAddress); % Address should be -1 if used with a robot.
         ok = WL.Sensoray.AnalogInputSetup(WL.cfg.SensorayAnalogChannels);
-        WL.Hardware = wl_hardware(WL.Robot  ); % Initialize hardware, WL.Sensoray
+        WL.Hardware = wl_hardware(WL.Robot ,  WL.Sensoray ); % Initialize hardware, WL.Sensoray
         ok = WL.Hardware.Start();
 
 
@@ -446,7 +446,8 @@ classdef JumpCursors < wl_experiment
         WL.state_next(WL.State.EXIT);
     else
         % Set breaks at specific trial numbers
-        if WL.TrialNumber == 27 || WL.TrialNumber == 160 || WL.TrialNumber == 287 || WL.TrialNumber == 547 
+        
+        if WL.TrialNumber == 27 || WL.TrialNumber == 165 || WL.TrialNumber == 287 || WL.TrialNumber == 547
             WL.Trial.RestFlag = 1;
             WL.state_next(WL.State.REST);
         else
