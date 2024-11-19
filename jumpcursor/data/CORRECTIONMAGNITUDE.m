@@ -1,4 +1,4 @@
-wl = load('Leonie2.mat');
+wl = load('pp04.mat');
 num_trials = size(wl.TimeStamp, 1);
 correctionX = NaN(1, num_trials);  % Store signed correction in the x-direction
 jumpDistances = NaN(1, num_trials);
@@ -73,4 +73,9 @@ speedLabels = [repmat({'Fast'}, length(fastCorrectionX), 1); ...
 
 % Convert speed labels to categorical data type
 speedFactor = categorical(speedLabels);
+
+% correction mangitude 
+% Load the data
+% Load the data
+
 

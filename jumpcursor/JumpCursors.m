@@ -19,7 +19,7 @@ classdef JumpCursors < wl_experiment
 
 
         % Initialize robot and hardware
-        WL.Robot = WL.robot(WL.cfg.RobotName);  % Mouse Flag and Max Force processed automatically
+        WL.Robot = WL.robot(WL.cfg.RobotName , WL.Sensoray);  % Mouse Flag and Max Force processed automatically
 
         % Set up S826 analog input and digital output channels.
         WL.Sensoray = wl_sensoray(WL.cfg.SensorayAddress); % Address should be -1 if used with a robot.
