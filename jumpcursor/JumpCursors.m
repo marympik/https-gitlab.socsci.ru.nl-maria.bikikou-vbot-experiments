@@ -19,7 +19,7 @@ classdef JumpCursors < wl_experiment
 
 
         % Initialize robot and hardware
-        WL.Robot = WL.robot(WL.cfg.RobotName , WL.Sensoray);  % Mouse Flag and Max Force processed automatically
+        WL.Robot = WL.robot(WL.cfg.RobotName);  % Mouse Flag and Max Force processed automatically
 
         % Set up S826 analog input and digital output channels.
         WL.Sensoray = wl_sensoray(WL.cfg.SensorayAddress); % Address should be -1 if used with a robot.
@@ -523,7 +523,7 @@ classdef JumpCursors < wl_experiment
       currentPosition = WL.Robot.Position;  % Get the current robot position
       currentVelocity = sqrt (sum ( WL.Robot.Velocity .^2)) ;  %  velocity
       % Update previous position for the next frame
-      flag = WL.Robot.Position(2) >= 0 && ~WL.cfg.hasPlayedFourthBeep && currentVelocity < WL.cfg.VelocityThreshold ;
+      flag = WL.Robot.Position(2) >= 9 && ~WL.cfg.hasPlayedFourthBeep && currentVelocity < WL.cfg.VelocityThreshold ;
       % WL.cfg.TargetPosition(2)
 
     end
