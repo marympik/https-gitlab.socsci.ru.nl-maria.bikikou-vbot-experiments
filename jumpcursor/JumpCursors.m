@@ -448,7 +448,7 @@ classdef JumpCursors < wl_experiment
     else
         % Set breaks at specific trial numbers
         
-        if WL.TrialNumber == 27 || WL.TrialNumber == 287 || WL.TrialNumber == 410 || WL.TrialNumber == 547
+        if WL.TrialNumber == 27 || WL.TrialNumber == 147 || WL.TrialNumber == 287 || WL.TrialNumber == 547
             WL.Trial.RestFlag = 1;
             WL.state_next(WL.State.REST);
         else
@@ -523,7 +523,7 @@ classdef JumpCursors < wl_experiment
       currentPosition = WL.Robot.Position;  % Get the current robot position
       currentVelocity = sqrt (sum ( WL.Robot.Velocity .^2)) ;  %  velocity
       % Update previous position for the next frame
-      flag = WL.Robot.Position(2) >= WL.cfg.TargetPosition(2) && ~WL.cfg.hasPlayedFourthBeep && currentVelocity < WL.cfg.VelocityThreshold ;
+      flag = WL.Robot.Position(2) >= 0 && ~WL.cfg.hasPlayedFourthBeep && currentVelocity < WL.cfg.VelocityThreshold ;
       % WL.cfg.TargetPosition(2)
 
     end
