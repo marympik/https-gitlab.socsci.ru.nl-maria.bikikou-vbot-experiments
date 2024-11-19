@@ -1,10 +1,79 @@
 % Load the data
-wl = load("pp03.mat");
+wl = load("pp05.mat");
 
 
 
+trial_number = 340;
 
-plot_single_trial_trajectory(wl,304);
+% Extract timestamps for the trial
+timeStamps = wl.TimeStamp(trial_number, 1:wl.Samples(trial_number));
+
+% Extract X and Y components of the robot velocity during the trial
+vx = squeeze(wl.RobotVelocity(trial_number, 1, 1:wl.Samples(trial_number)));
+vy = squeeze(wl.RobotVelocity(trial_number, 2, 1:wl.Samples(trial_number)));
+
+% Calculate the velocity magnitude (speed)
+speed = sqrt(vx.^2 + vy.^2);
+
+% Smooth speed to remove noise
+speed = movmean(speed, 10);
+
+% Adjust speed to ensure it starts at zero if there's an initial offset
+speed = speed - min(speed);
+
+% Define velocity thresholds to determine movement start and end
+velocityOnsetThreshold = 2;  % Threshold for movement start
+velocityOffsetThreshold = 2; % Threshold for movement end
+
+% Find movement start index (first time velocity exceeds onset threshold)
+movementStartIdx = find(speed > velocityOnsetThreshold, 1, 'first');
+
+% Find peak velocity index after movement start
+if ~isempty(movementStartIdx)
+    [peakVelocity, peakVelocityIdx] = max(speed(movementStartIdx:end));
+    peakVelocityIdx = peakVelocityIdx + movementStartIdx - 1;
+else
+    peakVelocityIdx = [];
+end
+
+% Find movement end index (first time velocity falls below offset threshold after peak velocity)
+if ~isempty(peakVelocityIdx)
+    movementEndIdx = find(speed < velocityOffsetThreshold & (1:length(timeStamps))' > peakVelocityIdx, 1, 'first');
+    % Ensure movementEndIdx does not exceed array bounds
+    if isempty(movementEndIdx) || movementEndIdx > length(timeStamps)
+        movementEndIdx = length(timeStamps);
+    end
+else
+    movementEndIdx = [];
+end
+
+% Plot the velocity (speed) over time
+figure;
+plot(timeStamps, speed, 'b', 'LineWidth', 1.5);
+hold on;
+xlabel('Time (seconds)');
+ylabel('Velocity Magnitude (cm/s)');
+title('Velocity Magnitude over Time');
+
+% Mark the start and end of movement
+if ~isempty(movementStartIdx)
+    xline(timeStamps(movementStartIdx), 'g--', 'LineWidth', 2, 'DisplayName', 'Movement Start');
+end
+if ~isempty(movementEndIdx)
+    xline(timeStamps(movementEndIdx), 'r--', 'LineWidth', 2, 'DisplayName', 'Movement End');
+end
+
+% Legend and grid for visualization
+legend('Velocity Magnitude', 'Movement Start', 'Movement End');
+grid on;
+hold off;
+
+% Display movement duration
+if ~isempty(movementStartIdx) && ~isempty(movementEndIdx)
+    movementDuration = timeStamps(movementEndIdx) - timeStamps(movementStartIdx);
+    disp(['Total Movement Duration: ', num2str(movementDuration), ' seconds']);
+end
+plot_single_trial_trajectory(wl,340);
 function plot_single_trial_trajectory(wl, trial_number)
     % Check if trial_number is valid
     if trial_number < 1 || trial_number > size(wl.RobotPosition, 1)
@@ -363,77 +432,7 @@ end
 
 
 % %Movementduration finally
-% % 
-% trial_number = 230;
-% 
-% % Extract timestamps for the trial
-% timeStamps = wl.TimeStamp(trial_number, 1:wl.Samples(trial_number));
-% 
-% % Extract X and Y components of the robot velocity during the trial
-% vx = squeeze(wl.RobotVelocity(trial_number, 1, 1:wl.Samples(trial_number)));
-% vy = squeeze(wl.RobotVelocity(trial_number, 2, 1:wl.Samples(trial_number)));
-% 
-% % Calculate the velocity magnitude (speed)
-% speed = sqrt(vx.^2 + vy.^2);
-% 
-% % Smooth speed to remove noise
-% speed = movmean(speed, 10);
-% 
-% % Adjust speed to ensure it starts at zero if there's an initial offset
-% speed = speed - min(speed);
-% 
-% % Define velocity thresholds to determine movement start and end
-% velocityOnsetThreshold = 2;  % Threshold for movement start
-% velocityOffsetThreshold = 2; % Threshold for movement end
-% 
-% % Find movement start index (first time velocity exceeds onset threshold)
-% movementStartIdx = find(speed > velocityOnsetThreshold, 1, 'first');
-% 
-% % Find peak velocity index after movement start
-% if ~isempty(movementStartIdx)
-%     [peakVelocity, peakVelocityIdx] = max(speed(movementStartIdx:end));
-%     peakVelocityIdx = peakVelocityIdx + movementStartIdx - 1;
-% else
-%     peakVelocityIdx = [];
-% end
-% 
-% % Find movement end index (first time velocity falls below offset threshold after peak velocity)
-% if ~isempty(peakVelocityIdx)
-%     movementEndIdx = find(speed < velocityOffsetThreshold & (1:length(timeStamps))' > peakVelocityIdx, 1, 'first');
-%     % Ensure movementEndIdx does not exceed array bounds
-%     if isempty(movementEndIdx) || movementEndIdx > length(timeStamps)
-%         movementEndIdx = length(timeStamps);
-%     end
-% else
-%     movementEndIdx = [];
-% end
-% 
-% % Plot the velocity (speed) over time
-% figure;
-% plot(timeStamps, speed, 'b', 'LineWidth', 1.5);
-% hold on;
-% xlabel('Time (seconds)');
-% ylabel('Velocity Magnitude (cm/s)');
-% title('Velocity Magnitude over Time');
-% 
-% % Mark the start and end of movement
-% if ~isempty(movementStartIdx)
-%     xline(timeStamps(movementStartIdx), 'g--', 'LineWidth', 2, 'DisplayName', 'Movement Start');
-% end
-% if ~isempty(movementEndIdx)
-%     xline(timeStamps(movementEndIdx), 'r--', 'LineWidth', 2, 'DisplayName', 'Movement End');
-% end
-% 
-% % Legend and grid for visualization
-% legend('Velocity Magnitude', 'Movement Start', 'Movement End');
-% grid on;
-% hold off;
-% 
-% % Display movement duration
-% if ~isempty(movementStartIdx) && ~isempty(movementEndIdx)
-%     movementDuration = timeStamps(movementEndIdx) - timeStamps(movementStartIdx);
-%     disp(['Total Movement Duration: ', num2str(movementDuration), ' seconds']);
-% end
+
 % % Specify the current trial number
 % trial_number = 9; % Update trial number as needed
 % 
