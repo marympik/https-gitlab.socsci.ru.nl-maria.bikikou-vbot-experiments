@@ -1,10 +1,10 @@
-wl = load('pp04.mat');
+wl = load('pp07.mat');
 num_trials = size(wl.TimeStamp, 1);
 correctionX = NaN(1, num_trials);  % Store signed correction in the x-direction
 jumpDistances = NaN(1, num_trials);
 isFastTrial = false(1, num_trials);  % Boolean array to indicate if a trial is fast
 
-for trial = 1:num_trials
+for trial = 27:546
     % Extract timestamps for the trial
     timeStamps = wl.TimeStamp(trial, 1:wl.Samples(trial));
 

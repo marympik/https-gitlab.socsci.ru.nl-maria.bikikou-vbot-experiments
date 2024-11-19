@@ -1,96 +1,96 @@
 % Load the data
-wl = load("01fast.mat");
+wl = load("pp03.mat");
 
 
 
-% 
-% plot_single_trial_trajectory(wl,200);
-% function plot_single_trial_trajectory(wl, trial_number)
-%     % Check if trial_number is valid
-%     if trial_number < 1 || trial_number > size(wl.RobotPosition, 1)
-%         error('Invalid trial number'); 
-%     end
-% 
-%     % Extract X and Y positions of the robot during the trial
-%     x = squeeze(wl.RobotPosition(trial_number, 1, 1:wl.Samples(trial_number)));
-%     y = squeeze(wl.RobotPosition(trial_number, 2, 1:wl.Samples(trial_number)));
-% 
-%     % Get start and target positions from the wl.WL.cfg structure
-%     start_pos = wl.WL.cfg.HomePosition(1:2);  % Extracting the (x, y) home position
-%     target_pos = wl.WL.cfg.TargetPosition(1:2);  % Extracting the (x, y) target position
-%     jump_distance = wl.TrialData.JumpDistance(trial_number);
-% 
-%     % Create a new figure for the plot
-%     figure;
-% 
-%     % Plot the trajectory
-%     plot(x, y, 'LineWidth', 2, 'DisplayName', 'Trajectory');
-%     hold on;
-% 
-%     % Plot the starting position (Home)
-%     plot(start_pos(1), start_pos(2), 'ro', 'MarkerSize', 10, 'LineWidth', 2, 'DisplayName', 'Start Position');
-% 
-%     % Plot the target position
-%     plot(target_pos(1), target_pos(2), 'gx', 'MarkerSize', 10, 'LineWidth', 2, 'DisplayName', 'Target Position');
-% 
-%     % Set the axis limits based on the configuration
-%     xlim([-10 10]);  % You can adjust this as needed
-%     ylim([-10 25]);  % Adjust this to suit your experiment's target distance
-% 
-%     % Add axis labels with units
-%     xlabel('X Position (cm)');
-%     ylabel('Y Position (cm)');
-% 
-%     % Add a legend to the plot
-%     legend('Location', 'Best');
-% 
-%     % Set title to indicate which trial is being plotted
-%     title(['Trajectory for Trial ', num2str(trial_number), ' - Jump Distance: ', num2str(jump_distance), ' cm']);
-% 
-%     % Grid for better visualization
-%     grid on;
-% 
-%     hold off;
+
+plot_single_trial_trajectory(wl,304);
+function plot_single_trial_trajectory(wl, trial_number)
+    % Check if trial_number is valid
+    if trial_number < 1 || trial_number > size(wl.RobotPosition, 1)
+        error('Invalid trial number'); 
+    end
+
+    % Extract X and Y positions of the robot during the trial
+    x = squeeze(wl.RobotPosition(trial_number, 1, 1:wl.Samples(trial_number)));
+    y = squeeze(wl.RobotPosition(trial_number, 2, 1:wl.Samples(trial_number)));
+
+    % Get start and target positions from the wl.WL.cfg structure
+    start_pos = wl.WL.cfg.HomePosition(1:2);  % Extracting the (x, y) home position
+    target_pos = wl.WL.cfg.TargetPosition(1:2);  % Extracting the (x, y) target position
+    jump_distance = wl.TrialData.JumpDistance(trial_number);
+
+    % Create a new figure for the plot
+    figure;
+
+    % Plot the trajectory
+    plot(x, y, 'LineWidth', 2, 'DisplayName', 'Trajectory');
+    hold on;
+
+    % Plot the starting position (Home)
+    plot(start_pos(1), start_pos(2), 'ro', 'MarkerSize', 10, 'LineWidth', 2, 'DisplayName', 'Start Position');
+
+    % Plot the target position
+    plot(target_pos(1), target_pos(2), 'gx', 'MarkerSize', 10, 'LineWidth', 2, 'DisplayName', 'Target Position');
+
+    % Set the axis limits based on the configuration
+    xlim([-10 10]);  % You can adjust this as needed
+    ylim([-10 25]);  % Adjust this to suit your experiment's target distance
+
+    % Add axis labels with units
+    xlabel('X Position (cm)');
+    ylabel('Y Position (cm)');
+
+    % Add a legend to the plot
+    legend('Location', 'Best');
+
+    % Set title to indicate which trial is being plotted
+    title(['Trajectory for Trial ', num2str(trial_number), ' - Jump Distance: ', num2str(jump_distance), ' cm']);
+
+    % Grid for better visualization
+    grid on;
+
+    hold off;
+end
+
+% % 
+% trial_number = 224; % Specify the trial number
+% % Check if trial_number is valid
+% if trial_number < 1 || trial_number > size(wl.RobotPosition, 1)
+%     error('Invalid trial number');
 % end
-
 % 
-trial_number = 224; % Specify the trial number
-% Check if trial_number is valid
-if trial_number < 1 || trial_number > size(wl.RobotPosition, 1)
-    error('Invalid trial number');
-end
-
-% Extract X and Y positions of the robot during the trial
-x = squeeze(wl.RobotPosition(trial_number, 1, 1:wl.Samples(trial_number)));
-y = squeeze(wl.RobotPosition(trial_number, 2, 1:wl.Samples(trial_number)));
-
-% Plotting trajectory for hand and cursor
-figure;
-plot(x, y, 'b', 'LineWidth', 1.5, 'DisplayName', 'Hand Trajectory');
-hold on;
-xlabel('X Position (cm)');
-ylabel('Y Position (cm)');
-title(['Trajectory for Trial ', num2str(trial_number), ' - Jump Distance: ', num2str(wl.TrialData.JumpDistance(trial_number)), ' cm']);
-
-% Mark start position
-start_pos = wl.WL.cfg.HomePosition(1:2);  % Extracting the (x, y) home position
-plot(start_pos(1), start_pos(2), 'ro', 'MarkerSize', 10, 'LineWidth', 2, 'DisplayName', 'Start Position');
-
-% Mark target position
-target_pos = wl.WL.cfg.TargetPosition(1:2);  % Extracting the (x, y) target position
-plot(target_pos(1), target_pos(2), 'gx', 'MarkerSize', 10, 'LineWidth', 2, 'DisplayName', 'Target Position');
-
-% Plot cursor jump as a step function
-jumpTimeIdx = find(wl.State(trial_number, :) == wl.WL.State.CURSORJUMP, 1, 'first');
-if ~isempty(jumpTimeIdx)
-    cursorPositionX = [x(1:jumpTimeIdx); x(jumpTimeIdx); x(jumpTimeIdx:end) + wl.TrialData.JumpDistance(trial_number)];
-    cursorPositionY = [y(1:jumpTimeIdx); y(jumpTimeIdx); y(jumpTimeIdx:end)];
-    stairs(cursorPositionX, cursorPositionY, 'r--', 'LineWidth', 1.5, 'DisplayName', 'Cursor Trajectory (Step Function)');
-end
-
-legend('Hand Trajectory', 'Start Position', 'Target Position', 'Cursor Trajectory (Step Function)');
-grid on;
-hold off;
+% % Extract X and Y positions of the robot during the trial
+% x = squeeze(wl.RobotPosition(trial_number, 1, 1:wl.Samples(trial_number)));
+% y = squeeze(wl.RobotPosition(trial_number, 2, 1:wl.Samples(trial_number)));
+% 
+% % Plotting trajectory for hand and cursor
+% figure;
+% plot(x, y, 'b', 'LineWidth', 1.5, 'DisplayName', 'Hand Trajectory');
+% hold on;
+% xlabel('X Position (cm)');
+% ylabel('Y Position (cm)');
+% title(['Trajectory for Trial ', num2str(trial_number), ' - Jump Distance: ', num2str(wl.TrialData.JumpDistance(trial_number)), ' cm']);
+% 
+% % Mark start position
+% start_pos = wl.WL.cfg.HomePosition(1:2);  % Extracting the (x, y) home position
+% plot(start_pos(1), start_pos(2), 'ro', 'MarkerSize', 10, 'LineWidth', 2, 'DisplayName', 'Start Position');
+% 
+% % Mark target position
+% target_pos = wl.WL.cfg.TargetPosition(1:2);  % Extracting the (x, y) target position
+% plot(target_pos(1), target_pos(2), 'gx', 'MarkerSize', 10, 'LineWidth', 2, 'DisplayName', 'Target Position');
+% 
+% % Plot cursor jump as a step function
+% jumpTimeIdx = find(wl.State(trial_number, :) == wl.WL.State.CURSORJUMP, 1, 'first');
+% if ~isempty(jumpTimeIdx)
+%     cursorPositionX = [x(1:jumpTimeIdx); x(jumpTimeIdx); x(jumpTimeIdx:end) + wl.TrialData.JumpDistance(trial_number)];
+%     cursorPositionY = [y(1:jumpTimeIdx); y(jumpTimeIdx); y(jumpTimeIdx:end)];
+%     stairs(cursorPositionX, cursorPositionY, 'r--', 'LineWidth', 1.5, 'DisplayName', 'Cursor Trajectory (Step Function)');
+% end
+% 
+% legend('Hand Trajectory', 'Start Position', 'Target Position', 'Cursor Trajectory (Step Function)');
+% grid on;
+% hold off;
 
 
 % %Define the trial number (ensure it's available for subsequent use)
@@ -362,78 +362,78 @@ hold off;
 % grid on;
 
 
-%Movementduration finally
+% %Movementduration finally
+% % 
+% trial_number = 230;
 % 
-trial_number = 230;
-
-% Extract timestamps for the trial
-timeStamps = wl.TimeStamp(trial_number, 1:wl.Samples(trial_number));
-
-% Extract X and Y components of the robot velocity during the trial
-vx = squeeze(wl.RobotVelocity(trial_number, 1, 1:wl.Samples(trial_number)));
-vy = squeeze(wl.RobotVelocity(trial_number, 2, 1:wl.Samples(trial_number)));
-
-% Calculate the velocity magnitude (speed)
-speed = sqrt(vx.^2 + vy.^2);
-
-% Smooth speed to remove noise
-speed = movmean(speed, 10);
-
-% Adjust speed to ensure it starts at zero if there's an initial offset
-speed = speed - min(speed);
-
-% Define velocity thresholds to determine movement start and end
-velocityOnsetThreshold = 2;  % Threshold for movement start
-velocityOffsetThreshold = 2; % Threshold for movement end
-
-% Find movement start index (first time velocity exceeds onset threshold)
-movementStartIdx = find(speed > velocityOnsetThreshold, 1, 'first');
-
-% Find peak velocity index after movement start
-if ~isempty(movementStartIdx)
-    [peakVelocity, peakVelocityIdx] = max(speed(movementStartIdx:end));
-    peakVelocityIdx = peakVelocityIdx + movementStartIdx - 1;
-else
-    peakVelocityIdx = [];
-end
-
-% Find movement end index (first time velocity falls below offset threshold after peak velocity)
-if ~isempty(peakVelocityIdx)
-    movementEndIdx = find(speed < velocityOffsetThreshold & (1:length(timeStamps))' > peakVelocityIdx, 1, 'first');
-    % Ensure movementEndIdx does not exceed array bounds
-    if isempty(movementEndIdx) || movementEndIdx > length(timeStamps)
-        movementEndIdx = length(timeStamps);
-    end
-else
-    movementEndIdx = [];
-end
-
-% Plot the velocity (speed) over time
-figure;
-plot(timeStamps, speed, 'b', 'LineWidth', 1.5);
-hold on;
-xlabel('Time (seconds)');
-ylabel('Velocity Magnitude (cm/s)');
-title('Velocity Magnitude over Time');
-
-% Mark the start and end of movement
-if ~isempty(movementStartIdx)
-    xline(timeStamps(movementStartIdx), 'g--', 'LineWidth', 2, 'DisplayName', 'Movement Start');
-end
-if ~isempty(movementEndIdx)
-    xline(timeStamps(movementEndIdx), 'r--', 'LineWidth', 2, 'DisplayName', 'Movement End');
-end
-
-% Legend and grid for visualization
-legend('Velocity Magnitude', 'Movement Start', 'Movement End');
-grid on;
-hold off;
-
-% Display movement duration
-if ~isempty(movementStartIdx) && ~isempty(movementEndIdx)
-    movementDuration = timeStamps(movementEndIdx) - timeStamps(movementStartIdx);
-    disp(['Total Movement Duration: ', num2str(movementDuration), ' seconds']);
-end
+% % Extract timestamps for the trial
+% timeStamps = wl.TimeStamp(trial_number, 1:wl.Samples(trial_number));
+% 
+% % Extract X and Y components of the robot velocity during the trial
+% vx = squeeze(wl.RobotVelocity(trial_number, 1, 1:wl.Samples(trial_number)));
+% vy = squeeze(wl.RobotVelocity(trial_number, 2, 1:wl.Samples(trial_number)));
+% 
+% % Calculate the velocity magnitude (speed)
+% speed = sqrt(vx.^2 + vy.^2);
+% 
+% % Smooth speed to remove noise
+% speed = movmean(speed, 10);
+% 
+% % Adjust speed to ensure it starts at zero if there's an initial offset
+% speed = speed - min(speed);
+% 
+% % Define velocity thresholds to determine movement start and end
+% velocityOnsetThreshold = 2;  % Threshold for movement start
+% velocityOffsetThreshold = 2; % Threshold for movement end
+% 
+% % Find movement start index (first time velocity exceeds onset threshold)
+% movementStartIdx = find(speed > velocityOnsetThreshold, 1, 'first');
+% 
+% % Find peak velocity index after movement start
+% if ~isempty(movementStartIdx)
+%     [peakVelocity, peakVelocityIdx] = max(speed(movementStartIdx:end));
+%     peakVelocityIdx = peakVelocityIdx + movementStartIdx - 1;
+% else
+%     peakVelocityIdx = [];
+% end
+% 
+% % Find movement end index (first time velocity falls below offset threshold after peak velocity)
+% if ~isempty(peakVelocityIdx)
+%     movementEndIdx = find(speed < velocityOffsetThreshold & (1:length(timeStamps))' > peakVelocityIdx, 1, 'first');
+%     % Ensure movementEndIdx does not exceed array bounds
+%     if isempty(movementEndIdx) || movementEndIdx > length(timeStamps)
+%         movementEndIdx = length(timeStamps);
+%     end
+% else
+%     movementEndIdx = [];
+% end
+% 
+% % Plot the velocity (speed) over time
+% figure;
+% plot(timeStamps, speed, 'b', 'LineWidth', 1.5);
+% hold on;
+% xlabel('Time (seconds)');
+% ylabel('Velocity Magnitude (cm/s)');
+% title('Velocity Magnitude over Time');
+% 
+% % Mark the start and end of movement
+% if ~isempty(movementStartIdx)
+%     xline(timeStamps(movementStartIdx), 'g--', 'LineWidth', 2, 'DisplayName', 'Movement Start');
+% end
+% if ~isempty(movementEndIdx)
+%     xline(timeStamps(movementEndIdx), 'r--', 'LineWidth', 2, 'DisplayName', 'Movement End');
+% end
+% 
+% % Legend and grid for visualization
+% legend('Velocity Magnitude', 'Movement Start', 'Movement End');
+% grid on;
+% hold off;
+% 
+% % Display movement duration
+% if ~isempty(movementStartIdx) && ~isempty(movementEndIdx)
+%     movementDuration = timeStamps(movementEndIdx) - timeStamps(movementStartIdx);
+%     disp(['Total Movement Duration: ', num2str(movementDuration), ' seconds']);
+% end
 % % Specify the current trial number
 % trial_number = 9; % Update trial number as needed
 % 
