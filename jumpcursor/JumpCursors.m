@@ -21,15 +21,16 @@ classdef JumpCursors < wl_experiment
         % Initialize robot and hardware
         WL.Robot = WL.robot(WL.cfg.RobotName);  % Mouse Flag and Max Force processed automatically
         % Disable the WatchDog timer (by setting the timeout value to zero).
-        ok = WL.Hardware.MHF_Func(WL.Hardware.MHF.HARDWARE_SET_WATCHDOG_TIMEOUT,0.0);
-        if( ~ok )
-            warning('WatchDog timer disable failed.');
-        end
+     
 
         % Set up S826 analog input and digital output channels.
         WL.Sensoray = wl_sensoray(WL.cfg.SensorayAddress); % Address should be -1 if used with a robot.
         ok = WL.Sensoray.AnalogInputSetup(WL.cfg.SensorayAnalogChannels);
         WL.Hardware = wl_hardware(WL.Robot ,  WL.Sensoray ); % Initialize hardware, WL.Sensoray
+        ok = WL.Hardware.MHF_Func(WL.Hardware.MHF.HARDWARE_SET_WATCHDOG_TIMEOUT,0.0);
+        if( ~ok )
+            warning('WatchDog timer disable failed.');
+        end
         ok = WL.Hardware.Start();
 
 
@@ -453,7 +454,7 @@ classdef JumpCursors < wl_experiment
     else
         % Set breaks at specific trial numbers
         
-        if WL.TrialNumber == 27 || WL.TrialNumber == 287 || WL.TrialNumber == 417 || WL.TrialNumber == 547
+        if WL.TrialNumber == 27 || WL.TrialNumber == 157 || WL.TrialNumber == 287 || WL.TrialNumber == 547
             WL.Trial.RestFlag = 1;
             WL.state_next(WL.State.REST);
         else
