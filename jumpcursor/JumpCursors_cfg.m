@@ -125,7 +125,7 @@ end
 % JumpDistances.
 
 JumpDistanceCount = 13;
-RepetitionCount = 20;
+RepetitionCount = 12;
 JumpDistance = num2cell([WL.cfg.possibleJumpDistances]); %  Targets evenly spaced around a circle.
 MovementSpeed = num2cell([{'slow'},{'fast'}]);
 WL.cfg.JumpDistance = JumpDistance;
